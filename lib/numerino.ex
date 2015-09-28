@@ -24,7 +24,7 @@ defmodule Numerino do
       fn priority -> 
         {:ok, pid} = Dispenser.start;
         Process.monitor(pid); 
-        {priority, :EOF, pid} 
+        {priority, [], pid} 
       end)
     {:ok, list}
   end
@@ -39,19 +39,29 @@ defmodule Numerino do
     {Dispenser.pop(pid), Dispenser.pop(pid)}
   end
 
-  defp do_single_pop {_priority, value, pid} do
-    {value, Dispenser.pop(pid)}
+  defp do_single_pop {_priority, [h | t], _pid} do
+    {h, t}
   end
 
   defp update_value({priority, _old_value, pid}, new_value) do
     {priority, new_value, pid}
   end
 
-  defp loop_priority([{priority, _value, _pid} = element | next], acc) do
-    case do_single_pop element do
-      {:EOF, _} -> loop_priority(next, [element | acc])
-      {value, next_value} -> {{priority, value}, Enum.concat(Enum.reverse([ update_value(element, next_value) | acc]), next)}
-    end
+  defp regenerate_list(priority, next_value, pid, next_disp, acc_disp) do
+    [{priority, next_value, pid} | acc_disp] 
+    |> Enum.reverse 
+    |> Enum.concat(next_disp)
+  end
+
+  defp loop_priority([{priority, [h | t], pid} | next], acc) do
+    {{priority, h}, regenerate_list(priority, t, pid, next, acc)}
+  end
+
+  defp loop_priority([{priority, [], pid} = e | next], acc) do
+    case Dispenser.pop(pid) do
+      [h | t] -> {{priority, h}, regenerate_list(priority, t, pid, next, acc)}
+      [] -> loop_priority(next, [e | acc])
+    end 
   end
 
   defp loop_priority([], acc) do
@@ -84,30 +94,32 @@ defmodule Dispenser do
     Agent.start(fn -> %Dispenser{} end)
   end
 
-  def do_push(%Dispenser{mode: m, elements: e}, new) do
-    case m do
-      :push -> %Dispenser{mode: m, elements: [new | e]}
-      :pop -> %Dispenser{mode: :push, elements: [new | Enum.reverse(e)]}
-    end
-  end
-
   def push(state, new) do
     Agent.update(state, fn d -> do_push(d, new) end)      
   end
 
-  defp do_pop %Dispenser{mode: m, elements: [h | t] = e} = d do
-    case m do
-      :pop -> {h, %Dispenser{d | elements: t }}
-      :push -> [h | t] = Enum.reverse(e);
-               {h, %Dispenser{elements: t, mode: :pop}}
-    end
+  def do_push %Dispenser{mode: :push, elements: e} = d, new do
+    %Dispenser{d | elements: [new | e]}
   end
 
-  defp do_pop %Dispenser{elements: []} = d do
-    {:EOF, %Dispenser{d | mode: :pop}}
+  def do_push %Dispenser{mode: :pop, elements: e} = d, new do
+    %Dispenser{mode: :push, elements: [new | Enum.reverse(e)]}
   end
-
+  
   def pop(state) do
     Agent.get_and_update(state, fn d -> do_pop(d) end)
   end
-end 
+
+  defp do_pop %Dispenser{mode: :pop, elements: e} do
+    {e, %Dispenser{mode: :pop, elements: []}}
+  end
+
+  defp do_pop %Dispenser{mode: :push, elements: e} do
+    {Enum.reverse(e), %Dispenser{mode: :pop, elements: []}}
+  end
+
+  defp do_pop %Dispenser{elements: []} = d do
+    {[], %Dispenser{d | mode: :pop}}
+  end
+end
+
