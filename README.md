@@ -70,7 +70,7 @@ siege -f siege_benchmark.txt -c 500 -b
 
 Let the test run for a little bit, 20sec are enought.
 
-Please move the number of concurent user (-c) up and down, try values such as 10, 25, 50, 100, 250, 500, 1000.
+Please move the number of concurent user (-c) up and down, try values such as 10, 25, 50, 100, 250, 500, 1000 on your local machine.
 
 Also, do not forget the -b option, it means `benchmark`.
 
