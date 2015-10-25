@@ -30,6 +30,7 @@ defmodule Numerino.Mixfile do
   defp deps do
     [{:json, "~> 0.3.0"},
      {:cowboy, "1.0.0"},
-     {:plug, "1.0.2"},]
+     {:plug, "1.0.2"},
+     {:uuid, "~> 1.1"}, ]
   end
 end

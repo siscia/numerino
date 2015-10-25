@@ -2,60 +2,81 @@ defmodule Numerino.Web do
   @behaviour :application
 
   def start(_type, _args) do
-    #{:ok, queue_counter} = Agent.start_link(fn -> HashDict.new end)
     {:ok, _} = Plug.Adapters.Cowboy.http Numerino.Plug, []
+    :observer.start()
     Numerino.Supervisor.start_link []
-    #{:ok, n} = Numerino.start_link [1, 2, 3, 4], fn p -> Numerino.QueueAddress.follow(p, "main") end
-    
   end  
 end
-
-#defmodule Numerino.QueueManager do
-#
-#  def start_link do
-#    Agent.start_link fn -> HashDict.new end
-#  end
-#
-#  def new_queue queue_manager, name, levels do
-#    {:ok, n} = Numerino.start_link levels
-#    ref = Process.monitor n
-#    Agent.update(queue_manager, fn a -> (HashDict.put_new a, name, n) 
-#                                     |> (HashDict.put_new ref, name) end)
-#  end
-#
-#end
-#
 
 defmodule Numerino.Plug do
   use Plug.Router
   use Plug.Debugger
-  
+ 
+  plug Plug.Parsers, parsers: [:json],
+                     json_decoder: JSON
   plug :put_resp_content_type, "application/json"
   plug :match
   plug :dispatch
 
-  def init a do
-    IO.inspect a
-    a
-  end
-
-  get "/" do
-    conn
-    |> send_resp(201, "world")
-  end
-
-  post "/" do
-    conn
-  end
-
   post "/new" do
-    conn    
+    case create_queue conn.params do
+      {:ok, name} -> send_resp(conn, 200, 
+                        JSON.encode!(%{result: :ok, 
+                                       message: "New queue created", 
+                                       name: name}))
+      {:error, message} -> send_resp(conn, 400, message)
+    end
+  end
+
+  get "/:name" do  ## pop
+    [{name, pid, _priorities}] = :ets.lookup Numerino.QueueAddress, name
+    a = Numerino.pop pid
+    IO.inspect a
+    case a do
+      {:ok, :EOF} -> send_resp(conn, 402, JSON.encode!(%{status: :end_of_queue, message: "Not element in the queue"}))
+      {:ok, {priority, message}} -> send_resp(conn, 200, JSON.encode!(%{status: :ok, message: message, priority: priority}))
+    end
+  end
+
+  post "/:name" do
+    [{name, pid, _priorities}] = :ets.lookup Numerino.QueueAddress, name
+    %{"priority" => priority, "message" => message} = conn.params
+    case Numerino.push pid, priority, message do
+      {:error, :not_found_priority} -> send_resp(conn, 402, error_push(priority, message))
+      {:ok, {priority, message}} -> send_resp(conn, 201, success_message(priority, message)) 
+    end
   end
 
   match _ do
     send_resp(conn, 404, "Not found.")
   end
 
+  defp create_queue %{"type" => "transient", "priorities" => p} do
+    name = UUID.uuid4(:hex)
+    {:ok, _p} = Numerino.QueueManager.new_queue(name, p)
+    {:ok, name}
+  end
+
+  defp create_queue wrong do
+    {:error, "Wrong map"}
+  end
+
+  defp handle_errors conn, m do
+    IO.inspect m
+    send_resp(conn, 400, "Something went wrong!")
+  end
+
+  defp error_push priority, message do
+    JSON.encode!( %{result: :error, 
+                    message: "Not found priority #{priority}", 
+                    priority: priority, message: message})
+  end
+
+  defp success_message priority, object do
+    JSON.encode!( %{result: :success, 
+                    message: "Insert new object with the message: #{object} under the priority #{priority}", 
+                    priority: priority, message: object})
+  end
 end
 
 defmodule Numerino.HTTPBench do

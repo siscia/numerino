@@ -32,8 +32,11 @@ defmodule Numerino do
 
   def handle_call({:push, priority, message}, _from, list) do
     {_priority, _value, dispenser} = List.keyfind(list, priority, 0)
-    Dispenser.push(dispenser, message)
-    {:reply, {:ok, {priority, message}}, list}
+    case dispenser do
+      nil -> {:reply, {:error, :not_found_priority}, list}
+      _ -> Dispenser.push(dispenser, message);
+           {:reply, {:ok, {priority, message}}, list}
+    end
   end
 
   defp do_single_pop {_priority, :EOF, pid} do
