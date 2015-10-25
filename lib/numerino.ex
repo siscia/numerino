@@ -3,8 +3,8 @@ defmodule Numerino do
 
   defstruct queue: HashDict.new
 
-  def start_link(priorities, opts \\ []) do
-    GenServer.start_link(__MODULE__, {:ok, priorities}, opts)
+  def start_link(priorities, callback, opts \\ []) do
+    GenServer.start_link(__MODULE__, {:ok, callback, priorities}, opts)
   end
 
   def push(n, priority, message) do
@@ -19,7 +19,8 @@ defmodule Numerino do
     GenServer.call(numerino, :inspect)
   end
 
-  def init({:ok, priorities}) do
+  def init({:ok, callback, priorities}) do
+    callback.(self)
     list = Enum.into(priorities, [], 
       fn priority -> 
         {:ok, pid} = Dispenser.start;
