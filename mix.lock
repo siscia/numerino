@@ -1,0 +1,8 @@
+%{"benchfella": {:hex, :benchfella, "0.2.1"},
+  "bmark": {:hex, :bmark, "1.0.1"},
+  "cowboy": {:hex, :cowboy, "1.0.0"},
+  "cowlib": {:hex, :cowlib, "1.0.1"},
+  "json": {:hex, :json, "0.3.2"},
+  "plug": {:hex, :plug, "1.0.2"},
+  "ranch": {:hex, :ranch, "1.0.0"},
+  "uuid": {:hex, :uuid, "1.1.0"}}
