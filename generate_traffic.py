@@ -20,9 +20,9 @@ def create_message():
 
 def create_query():
 	if random.choice([0, 1, 2, 3]):
-		return "http://localhost:8080/"
-	else:
 		return "http://localhost:8080/ POST " + create_message()
+	else:
+		return "http://localhost:8080/"
 
 if __name__ == '__main__':
 	f = sys.argv[1]

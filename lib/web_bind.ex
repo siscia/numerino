@@ -99,7 +99,7 @@ defmodule Numerino.HTTPBench do
   defp read_request request do
     {:ok, body, _req} = :cowboy_req.body(request)
     {:ok, %{"priority" => p, "element" => e}} = JSON.decode(body)
-    {p, e} 
+    {p, e}
   end
 
   def handle(request, state) do
@@ -109,7 +109,7 @@ defmodule Numerino.HTTPBench do
           [],
           do_pop(state, request),
           req
-      ) 
+      )
       {"POST", req} -> {:ok, rep} = :cowboy_req.reply(
           200,
           [],
