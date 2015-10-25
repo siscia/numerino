@@ -10,6 +10,7 @@ end
 
 defmodule Numerino.Plug do
   use Plug.Router
+  use Plug.Debugger
   use Plug.ErrorHandler 
   
   plug Plug.Parsers, parsers: [:json],
@@ -63,7 +64,7 @@ defmodule Numerino.Plug do
 
   defp handle_errors conn, %{kind: _kind, reason: _reason, stack: _stack} do
     IO.inspect conn
-    send_resp(conn, 400, "Something went wrong!")
+    send_resp(conn, 400, "Something went wrong, most likely your JSON !")
   end
 
   defp error_push priority, message do
