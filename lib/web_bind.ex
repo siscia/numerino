@@ -10,8 +10,8 @@ end
 
 defmodule Numerino.Plug do
   use Plug.Router
-  use Plug.Debugger
- 
+  use Plug.ErrorHandler 
+  
   plug Plug.Parsers, parsers: [:json],
                      json_decoder: JSON
   plug :put_resp_content_type, "application/json"
@@ -61,8 +61,8 @@ defmodule Numerino.Plug do
     {:error, "Wrong map"}
   end
 
-  defp handle_errors conn, m do
-    IO.inspect m
+  defp handle_errors conn, %{kind: _kind, reason: _reason, stack: _stack} do
+    IO.inspect conn
     send_resp(conn, 400, "Something went wrong!")
   end
 
