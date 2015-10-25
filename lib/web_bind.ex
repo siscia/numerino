@@ -6,8 +6,7 @@ defmodule Numerino.Web do
     {:ok, _} = Plug.Adapters.Cowboy.http Numerino.Plug, []
     Numerino.Supervisor.start_link []
     #{:ok, n} = Numerino.start_link [1, 2, 3, 4], fn p -> Numerino.QueueAddress.follow(p, "main") end
-    
-  end  
+  end
 end
 
 #defmodule Numerino.QueueManager do
@@ -19,7 +18,7 @@ end
 #  def new_queue queue_manager, name, levels do
 #    {:ok, n} = Numerino.start_link levels
 #    ref = Process.monitor n
-#    Agent.update(queue_manager, fn a -> (HashDict.put_new a, name, n) 
+#    Agent.update(queue_manager, fn a -> (HashDict.put_new a, name, n)
 #                                     |> (HashDict.put_new ref, name) end)
 #  end
 #
@@ -29,7 +28,7 @@ end
 defmodule Numerino.Plug do
   use Plug.Router
   use Plug.Debugger
-  
+
   plug :put_resp_content_type, "application/json"
   plug :match
   plug :dispatch
@@ -49,7 +48,7 @@ defmodule Numerino.Plug do
   end
 
   post "/new" do
-    conn    
+    conn
   end
 
   match _ do
@@ -78,7 +77,7 @@ defmodule Numerino.HTTPBench do
   defp read_request request do
     {:ok, body, _req} = :cowboy_req.body(request)
     {:ok, %{"priority" => p, "element" => e}} = JSON.decode(body)
-    {p, e} 
+    {p, e}
   end
 
   def handle(request, state) do
@@ -88,7 +87,7 @@ defmodule Numerino.HTTPBench do
           [],
           do_pop(state, request),
           req
-      ) 
+      )
       {"POST", req} -> {:ok, rep} = :cowboy_req.reply(
           200,
           [],
