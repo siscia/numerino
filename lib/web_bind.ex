@@ -10,7 +10,6 @@ end
 
 defmodule Numerino.Plug do
   use Plug.Router
-  use Plug.Debugger
   use Plug.ErrorHandler 
   
   plug Plug.Parsers, parsers: [:json],
