@@ -10,6 +10,7 @@ end
 
 defmodule Numerino.Plug do
   use Plug.Router
+  use Plug.Debugger
   use Plug.ErrorHandler 
   
   plug Plug.Parsers, parsers: [:json],
@@ -61,9 +62,8 @@ defmodule Numerino.Plug do
     {:error, "Wrong map"}
   end
 
-  defp handle_errors conn, %{kind: _kind, reason: _reason, stack: _stack} do
-    IO.inspect conn
-    send_resp(conn, 400, "Something went wrong, most likely your JSON !")
+  defp handle_errors conn, %{kind: :error, reason: %Plug.Parsers.ParseError{}, stack: _stack} do
+    send_resp(conn, 400, "Your JSON wasn't valid")
   end
 
   defp error_push priority, message do
