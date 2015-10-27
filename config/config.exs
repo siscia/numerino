@@ -2,6 +2,18 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
+config :numerino, Numerino.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  database: "numerino_repo",
+  username: "user",
+  password: "pass",
+  hostname: "localhost"
+
+
+config :numerino, Numerino.Repo,
+  adapter: Sqlite.Ecto,
+  database: "Numerino.sqlite3"
+
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
 # file won't be loaded nor affect the parent project. For this reason,

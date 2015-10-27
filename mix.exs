@@ -14,7 +14,7 @@ defmodule Numerino.Mixfile do
   #
   # Type `mix help compile.app` for more information
   def application do
-    [applications: [:logger, :ranch, :crypto, :cowlib, :cowboy, :plug],
+    [applications: [:logger, :ranch, :crypto, :cowlib, :cowboy, :plug, :sqlite_ecto, :ecto],
      mod: {Numerino.Web, []}]
   end
 
@@ -31,6 +31,8 @@ defmodule Numerino.Mixfile do
     [{:json, "~> 0.3.0"},
      {:cowboy, "1.0.0"},
      {:plug, "1.0.2"},
+     {:ecto, "1.0.6"},
+     {:sqlite_ecto, "~> 1.0.0"},
      {:uuid, "~> 1.1"}, ]
   end
 end

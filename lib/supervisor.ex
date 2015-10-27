@@ -7,7 +7,8 @@ defmodule Numerino.Supervisor do
   def init(_) do
     processes = [
       worker(Numerino.QueueAddress, []),
-      supervisor(Numerino.QueueManager, [])
+      supervisor(Numerino.QueueManager, []),
+      worker(Numerino.Repo, [])
     ]
     {:ok, {{:rest_for_one, 10, 10}, processes}}
   end
