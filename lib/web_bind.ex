@@ -19,7 +19,7 @@ defmodule Numerino.Plug do
   plug :match
   plug :dispatch
 
-  post "/new" do
+  post "/queue" do
     case create_queue conn.params do
       {:ok, name} -> send_resp(conn, 200, 
                         JSON.encode!(%{result: :ok, 
@@ -31,9 +31,7 @@ defmodule Numerino.Plug do
 
   get "/:name" do  ## pop
     [{name, pid, _priorities}] = :ets.lookup Numerino.QueueAddress, name
-    a = Numerino.pop pid
-    IO.inspect a
-    case a do
+    case Numerino.pop(pid) do
       {:ok, :EOF} -> send_resp(conn, 402, JSON.encode!(%{status: :end_of_queue, message: "Not element in the queue"}))
       {:ok, {priority, message}} -> send_resp(conn, 200, JSON.encode!(%{status: :ok, message: message, priority: priority}))
     end
