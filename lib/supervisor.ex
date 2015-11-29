@@ -2,7 +2,8 @@ defmodule Numerino.Supervisor do
   use Supervisor
 
   def start_link(_) do
-    {:ok, sup} = Supervisor.start_link(__MODULE__, [], name: :supervisor)   end
+    Supervisor.start_link(__MODULE__, [], name: :supervisor)   
+  end
 
   def init(_) do
     processes = [
@@ -10,7 +11,7 @@ defmodule Numerino.Supervisor do
       supervisor(Numerino.QueueManager, []),
       worker(Numerino.Repo, [])
     ]
-    {:ok, {{:rest_for_one, 10, 10}, processes}}
+    supervise(processes, strategy: :rest_for_one)
   end
 end
 

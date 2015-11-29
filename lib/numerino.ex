@@ -1,7 +1,27 @@
+
+defmodule DispenserSup do
+  use Supervisor
+
+  def start_link do
+    Supervisor.start_link(__MODULE__, :ok)
+  end
+
+  def init :ok do
+    children = [
+      worker(Dispenser, [])
+    ]
+
+    supervise(children, strategy: :simple_one_for_one)
+  end
+
+  def start_dispenser sup do
+    Supervisor.start_child(sup, [])
+  end
+
+end
+
 defmodule Numerino do
   use GenServer
-
-  defstruct queue: HashDict.new
 
   def start_link(priorities, callback, opts \\ []) do
     GenServer.start_link(__MODULE__, {:ok, callback, priorities}, opts)
@@ -21,21 +41,21 @@ defmodule Numerino do
 
   def init({:ok, callback, priorities}) do
     callback.(self)
-    list = Enum.into(priorities, [],
+    {:ok, s} = DispenserSup.start_link
+    list = Enum.map(priorities,
       fn priority ->
-        {:ok, pid} = Dispenser.start;
-        Process.monitor(pid);
+        {:ok, pid} = DispenserSup.start_dispenser(s);
         {priority, [], pid}
       end)
-    {:ok, list}
+    {:ok, {list, s}}
   end
 
-  def handle_call({:push, priority, message}, _from, list) do
+  def handle_call({:push, priority, message}, _from, {list, s}) do
     {_priority, _value, dispenser} = List.keyfind(list, priority, 0)
     case dispenser do
-      nil -> {:reply, {:error, :not_found_priority}, list}
+      nil -> {:reply, {:error, :not_found_priority}, {list, s}}
       _ -> Dispenser.push(dispenser, message);
-           {:reply, {:ok, {priority, message}}, list}
+           {:reply, {:ok, {priority, message}}, {list, s}}
     end
   end
 
@@ -72,19 +92,19 @@ defmodule Numerino do
     {:EOF, Enum.reverse(acc)}
   end
 
-  def handle_call(:pop, _from, list) do
+  def handle_call(:pop, _from, {list, s}) do
     {value, list} = loop_priority(list, [])
     {:reply, {:ok, value}, list}
   end
 
-  def handle_call(:inspect, _from, dict) do
-    {:reply, dict, dict}
+  def handle_call(:inspect, _from, {list, s}) do
+    {:reply, {list, s}, {list, s}}
   end
 
-  def handle_info({:DOWN, _ref, _proc, from, _reason}, list) do
+  def handle_info({:DOWN, _ref, _proc, from, _reason}, {list, s}) do
     {priority, value, _pid} = List.keyfind list, from, 2
     {:ok, new_pid} = Dispenser.start
     Process.monitor(new_pid)
-    {:noreply, List.keyreplace(list, from, 2, {priority, value, new_pid})}
+    {:noreply, {List.keyreplace(list, from, 2, {priority, value, new_pid}), s}}
   end
 end
