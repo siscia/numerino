@@ -14,8 +14,8 @@ defmodule DispenserSup do
     supervise(children, strategy: :simple_one_for_one)
   end
 
-  def start_dispenser sup do
-    Supervisor.start_child(sup, [])
+  def start_dispenser sup, n, priority do
+    Supervisor.start_child(sup, [n, priority])
   end
 
 end
@@ -35,6 +35,10 @@ defmodule Numerino do
     GenServer.call(n, :pop)
   end
 
+  def add_dispenser(n, priority, pid) do
+    GenServer.cast(n, {:add_dispenser, priority, pid})
+  end
+
   def inspect(numerino) do
     GenServer.call(numerino, :inspect)
   end
@@ -44,8 +48,8 @@ defmodule Numerino do
     {:ok, s} = DispenserSup.start_link
     list = Enum.map(priorities,
       fn priority ->
-        {:ok, pid} = DispenserSup.start_dispenser(s);
-        {priority, [], pid}
+        DispenserSup.start_dispenser(s, self, priority);
+        {priority}
       end)
     {:ok, {list, s}}
   end
@@ -101,10 +105,10 @@ defmodule Numerino do
     {:reply, {list, s}, {list, s}}
   end
 
-  def handle_info({:DOWN, _ref, _proc, from, _reason}, {list, s}) do
-    {priority, value, _pid} = List.keyfind list, from, 2
-    {:ok, new_pid} = Dispenser.start
-    Process.monitor(new_pid)
-    {:noreply, {List.keyreplace(list, from, 2, {priority, value, new_pid}), s}}
+  def handle_cast({:add_dispenser, priority, pid}, {list, s}) do
+    new_list = List.keyreplace(list, priority, 0, {priority, [], pid})
+    Dispenser.confirm(pid)
+    {:noreply, {new_list, s}}
   end
+
 end

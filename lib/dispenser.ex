@@ -3,10 +3,18 @@ defmodule Dispenser do
     Dispenser keep a single priority in a single queue.
   "
 
-  defstruct mode: :push, elements: []
+  defstruct mode: :push, elements: [], queue: nil, priority: nil, confirmed: false
 
-  def start_link do
-    Agent.start_link(fn -> %Dispenser{} end)
+  def start_link n, priority do
+    {:ok, pid} = Agent.start_link(fn -> 
+      %Dispenser{queue: n, priority: priority}
+    end)
+    Numerino.add_dispenser(n, priority, pid)
+    {:ok, pid}
+  end
+
+  def confirm state do
+    Agent.update(state, fn s -> %Dispenser{s | confirmed: true} end)
   end
 
   def push(state, new) do
