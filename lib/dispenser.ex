@@ -5,8 +5,8 @@ defmodule Dispenser do
 
   defstruct mode: :push, elements: []
 
-  def start do
-    Agent.start(fn -> %Dispenser{} end)
+  def start_link do
+    Agent.start_link(fn -> %Dispenser{} end)
   end
 
   def push(state, new) do
