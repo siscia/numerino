@@ -9,26 +9,34 @@ defmodule Test do
     {:ok, 1}
   end
 
-  def t n do
-    GenServer.call(n, :p)
+  def create_task n do
+    GenServer.call(n, :create_task)
   end
 
-  def rt n, t do
-    GenServer.call(n, {:r, t})
+  def read_task n, t do
+    GenServer.call(n, {:read_task, t})
   end
 
-  def handle_call :p, _from, v do
+  def read_state n do
+    GenServer.call(n, :read)
+  end
+
+  def handle_call :create_task, _from, v do
     t = Task.async(fn -> 3 * v end)
     {:reply, t, v}
   end
 
-  def handle_call {:r, t}, _from, v do
+  def handle_call {:read_task, t}, _from, v do
     i = Task.await(t)
     {:reply, :ok, i}
   end
 
+  def handle_call :read, _from, v do
+    {:reply, v, v}
+  end
+
   def handle_info {ref, mssg}, v do
-    {:noreply, v + mssg}
+    {:noreply, mssg}
   end
 
   def handle_info {:DOWN, _ref, _p, _pid, _status}, v do
