@@ -23,6 +23,7 @@ defmodule Test do
 
   def handle_call :create_task, _from, v do
     t = Task.async(fn -> 3 * v end)
+    v = Task.await(t)
     {:reply, t, v}
   end
 

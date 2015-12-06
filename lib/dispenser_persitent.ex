@@ -47,7 +47,7 @@ defmodule DispenserPersintent do
   end
 
   def confirm server, job_id do
-    GenServer.cast(server, {:confirm, job_id})
+    GenServer.call(server, {:confirm, job_id})
   end
 
   def init {:ok, n, {p, id_p}, db} do
@@ -72,9 +72,9 @@ defmodule DispenserPersintent do
     {:reply, :confirmed, %DispenserPersintent{d | ack: true}}
   end
 
-  def handle_cast {:confirm, job_id}, %DispenserPersintent{db: db} = d do
+  def handle_call {:confirm, job_id}, _from, %DispenserPersintent{db: db} = d do
     {:ok, _} = Numerino.Db.Jobs.Query.confirm_send(db, job_id)
-    {:noreply, d}
+    {:reply, :ok, d}
   end
 
   def handle_call {:peek, n}, _from, %DispenserPersintent{db: db, priority: p} = d do

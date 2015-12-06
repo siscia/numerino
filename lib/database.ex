@@ -98,6 +98,11 @@ defmodule Numerino.Db.Priorities do
       :ok = :esqlite3.bind(stat, [name, queue_id, :os.system_time])
       Numerino.Db.prepared_insert stat
     end
+
+    def from_queue conn, queue_id do
+      :esqlite3.q('SELECT priority_id, name FROM priorities WHERE queue_id = ? ORDER BY priority_id ASC', [queue_id], conn)
+    end
+
   end
 
 end
