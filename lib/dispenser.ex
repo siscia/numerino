@@ -1,8 +1,4 @@
 defmodule Dispenser do
-  "
-    Dispenser keep a single priority in a single queue.
-  "
-
   defstruct mode: :push, elements: [], queue: nil, priority: nil, confirmed: false
 
   def start_link n, priority do

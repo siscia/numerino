@@ -2,20 +2,23 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-config :numerino, Numerino.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  database: "numerino_repo",
-  username: "user",
-  password: "pass",
-  hostname: "localhost"
+config :numerino, Numerino.Db,
+  %{:path => 'numerino.sqlite'}
 
-
-config :numerino, Numerino.Repo,
-  adapter: Sqlite.Ecto,
-  database: "Numerino.sqlite3"
-
-config :logger,
-  handle_sasl_reports: true
+#config :numerino, Numerino.Repo,
+#  adapter: Ecto.Adapters.Postgres,
+#  database: "numerino_repo",
+#  username: "user",
+#  password: "pass",
+#  hostname: "localhost"
+#
+#
+#config :numerino, Numerino.Repo,
+#  adapter: Sqlite.Ecto,
+#  database: "Numerino.sqlite3"
+#
+#config :logger,
+#  handle_sasl_reports: true
 
 
 # This configuration is loaded before any dependency and is restricted

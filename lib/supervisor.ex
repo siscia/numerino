@@ -9,7 +9,6 @@ defmodule Numerino.Supervisor do
     processes = [
       worker(Numerino.QueueAddress, []),
       supervisor(Numerino.QueueManager, []),
-      worker(Numerino.Repo, [])
     ]
     supervise(processes, strategy: :rest_for_one)
   end

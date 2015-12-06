@@ -98,7 +98,7 @@ defmodule Numerino do
 
   def handle_call(:pop, _from, {list, s}) do
     {value, list} = loop_priority(list, [])
-    {:reply, {:ok, value}, list}
+    {:reply, {:ok, value}, {list, s}}
   end
 
   def handle_call(:inspect, _from, {list, s}) do
@@ -106,7 +106,11 @@ defmodule Numerino do
   end
 
   def handle_cast({:add_dispenser, priority, pid}, {list, s}) do
-    new_list = List.keyreplace(list, priority, 0, {priority, [], pid})
+    value_to_keep = case List.keyfind(list, priority, 0) do
+                      {priority, l, pid} ->  l
+                      {priority} -> []
+                    end
+    new_list = List.keyreplace(list, priority, 0, {priority, value_to_keep, pid})
     Dispenser.confirm(pid)
     {:noreply, {new_list, s}}
   end

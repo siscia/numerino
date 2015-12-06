@@ -11,7 +11,7 @@ defmodule Numerino.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :ranch, :crypto, :cowlib, :cowboy, :plug, :sqlite_ecto, :ecto],
+    [applications: [:logger, :ranch, :crypto, :cowlib, :cowboy, :plug],
      mod: {Numerino.Web, []}]
   end
 
