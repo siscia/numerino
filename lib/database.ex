@@ -77,6 +77,11 @@ defmodule Numerino.Db.Queues do
       :ok = :esqlite3.bind(stat, [name, user_id, :os.system_time])
       Numerino.Db.prepared_insert stat
     end
+
+    def exist conn, queue_id do
+      :esqlite3.q('SELECT queues_id FROM queues WHERE queues_id = ?', [queue_id], conn)
+    end
+
   end
 end
 
@@ -101,6 +106,10 @@ defmodule Numerino.Db.Priorities do
 
     def from_queue conn, queue_id do
       :esqlite3.q('SELECT priority_id, name FROM priorities WHERE queue_id = ? ORDER BY priority_id ASC', [queue_id], conn)
+    end
+
+    def get_queue_id conn, priority_id do
+      :esqlite3.q('SELECT queue_id FROM priorities WHERE priority_id = ?', [priority_id], conn)
     end
 
   end
@@ -145,5 +154,40 @@ defmodule Numerino.Db.Jobs do
     end
   end
 
+end
+
+defmodule Numerino.Db.Batcher do
+  use GenServer
+
+  def start_link do
+    GenServer.start_link(__MODULE__, :ok, [:name Batcher])
+  end
+
+  def add_job(server, message, priority_id) do
+    GenServer.call(server, {:batch, message, priority_id})
+  end
+
+  def fire(server) do
+    GenServer.call(server, :fire)
+  end
+
+  def init(:ok) do
+    {:ok, conn} = Numerino.Db.connect
+    {:ok, stat} = :esqlite3.prepare('INSERT INTO jobs(message, priority_id, created_at) VALUES(?1, ?2, ?3)', conn)
+    {:ok, {stat, []}}
+  end
+
+  def handle_call({:batch, message, priority_id}, from, {stat, pid_list}) do
+    :ok = :esqlite3.bind(stat, [message, priority_id, :os.system_time])
+    {:reply, :ok, {stat, [from | pid_list]}}
+  end
+
+  def handle_call(:fire, _from, {stat, pid_list}) do
+    :ok = :esqlite3.step(stat)
+    Enum.map(pid_list, fn p -> DispenserPersistent.confirm_push(p) end)
+    {:reply, :ok, {stat, []}}
+  end
+
+end
 end
 
