@@ -3,7 +3,7 @@
 use Mix.Config
 
 config :numerino, Numerino.Db,
-  %{:path => 'numerino.sqlite'}
+  %{:path => 'numerino2.sqlite'}
 
 #config :numerino, Numerino.Repo,
 #  adapter: Ecto.Adapters.Postgres,
