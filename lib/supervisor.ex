@@ -9,7 +9,8 @@ defmodule Numerino.Supervisor do
     processes = [
       worker(Numerino.QueueAddress, []),
       supervisor(Numerino.QueueManager.Transient, []),
-      supervisor(Numerino.QueueManager.Persistent, [])
+      supervisor(Numerino.QueueManager.Persistent, []),
+      worker(Numerino.Db.Batcher, [[name: Batcher]])
     ]
     supervise(processes, strategy: :rest_for_one)
   end
@@ -73,9 +74,9 @@ defmodule Numerino.QueueManager.Persistent do
     supervise(process, strategy: :simple_one_for_one)
   end
 
-  def new_queue :new, user, priorities do
+  def new_queue :new, queue_id, user, priorities do
     callback = fn pid, queue_id -> Numerino.QueueAddress.follow(pid, queue_id, :persistent) end
-    {:ok, _p} = Supervisor.start_child(@self, [:new, user, priorities, callback, []])
+    {:ok, _p} = Supervisor.start_child(@self, [:new, queue_id, user, priorities, callback, []])
   end
 
   def new_queue :existing, id do

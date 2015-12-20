@@ -194,8 +194,8 @@ defmodule Numerino.Db.Batcher do
     GenServer.start_link(__MODULE__, :ok, opts)
   end
 
-  def add_job(server, query, argument, from) do
-    GenServer.call(server, {:batch, query, argument, from})
+  def add_job(server, query, argument) do
+    GenServer.call(server, {:batch, query, argument})
   end
 
   def query(server, query, argument) do
@@ -214,14 +214,21 @@ defmodule Numerino.Db.Batcher do
     GenServer.call(server, :inspect)
   end
 
+  def task_function(from, query, args) do
+    fn -> 
+      result = Numerino.Db.Batcher.add_job(Batcher, query, args)
+      {:batcher, from, result}
+    end
+  end
+
   def init(:ok) do
     {:ok, conn} = Numerino.Db.connect
     :erlang.start_timer(100, self, :autofire)
     {:ok, {conn, :queue.new}}
   end
 
-  def handle_call({:batch, query, arguments, from}, _from, {conn, queue}) do
-    {:reply, :ok, {conn, :queue.in({query, arguments, from}, queue)}}
+  def handle_call({:batch, query, arguments}, from, {conn, queue}) do
+    {:noreply, {conn, :queue.in({query, arguments, from}, queue)}}
   end
 
   def handle_call(:fire, _from, {conn, queue}) do
@@ -231,7 +238,9 @@ defmodule Numerino.Db.Batcher do
 
   def handle_call(:autofire, _from, {conn, queue}) do
     do_write(conn, queue)
+##    IO.inspect "Fire from here"
     :erlang.start_timer(500, self, :autofire)
+    {:reply, :ok, {conn, :queue.new}}
   end
 
   def handle_call({:query, query, argument}, _from, {conn, queue}) do
@@ -241,21 +250,34 @@ defmodule Numerino.Db.Batcher do
   end
 
   defp do_write(conn, queue) do
-    :ok = :esqlite3.exec('BEGIN;', conn)
     queries = :queue.to_list(queue)
-    to_notify = Enum.map(queries, fn {query, argument, from} -> 
-              :"$done" = :esqlite3.exec(query, argument, conn);
-              from
-            end)
+    ## IO.inspect queries
+    if Enum.empty?(queries) do
+      ## IO.puts '0'
+      :ok
+    else
+      ## IO.inspect queries
+      :ok = :esqlite3.exec('BEGIN;', conn)
+      to_notify = Enum.map(queries, 
+        fn {query, argument, from} -> 
+          :"$done" = :esqlite3.exec(query, argument, conn);
+          from
+        end)
 
-    :ok = :esqlite3.exec('COMMIT;', conn)
-    Enum.map(to_notify, 
-      fn from -> case from do 
-        from when is_pid(from) -> GenServer.reply(from, :ok) 
-        _ -> :ok
-        end
-      end)
-    :ok
+      :ok = :esqlite3.exec('COMMIT;', conn)
+        Enum.map(to_notify, 
+        fn from ->
+          ## IO.inspect from
+          case from do
+            from when is_pid(from) -> GenServer.reply(from, :ok) 
+            {from, ref} when is_pid(from) -> GenServer.reply({from, ref}, :ok)
+            _ -> :ok
+          end
+        end)
+      ## IO.write ">>> "
+      ## IO.puts length(queries)
+      :ok
+    end
   end
 
   def  handle_call(:inspect, _from, value) do
@@ -264,7 +286,7 @@ defmodule Numerino.Db.Batcher do
 
   def handle_info({:timeout, _ref, :autofire}, {conn, queue}) do
     do_write(conn, queue)
-    :erlang.start_timer(500, self, :autofire)
+    :erlang.start_timer(1010, self, :autofire)
     {:noreply, {conn, :queue.new}}
   end
 

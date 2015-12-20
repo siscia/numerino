@@ -1,8 +1,8 @@
 defmodule NumerinoPersistent do
   use GenServer
   
-  def start_link :new, user, queue_id, priorities, callback, opts do
-     GenServer.start_link(__MODULE__, {:new, user, queue_id, priorities, callback}, opts)
+  def start_link :new, queue_id, user, priorities, callback, opts do
+     GenServer.start_link(__MODULE__, {:new, queue_id, user, priorities, callback}, opts)
   end
 
   def start_link :existing, id, callback, opts do
@@ -25,18 +25,15 @@ defmodule NumerinoPersistent do
     GenServer.call(n, {:dispenser_update, dispenser_name, dispenser_pid})
   end
 
-  def init {:new, user, queue_id, priorities, callback} do
-    {:ok, conn} = Numerino.Db.connect
-    ## {:ok, _} = Numerino.Db.Queues.Query.new conn, queue_id, user
+  def init {:new, queue_id, user, priorities, callback} do
     new_queue_query = Numerino.Db.Queues.Query.new
-    :ok = Numerino.Db.Batcher.add_job(Batcher, new_queue_query, [queue_id, user, :os.system_time], nil)
+    Task.async(Numerino.Db.Batcher.task_function(nil, new_queue_query, [queue_id, user, :os.system_time]))
     {:ok, s} = DispenserPersistentSup.start_link
     list = priorities |> Enum.map( &to_string(&1) ) |>
     Enum.map(
       fn p ->
-        ## {:ok, _} = Numerino.Db.Priorities.Query.new conn, p, queue_id
         new_priorities_query = Numerino.Db.Priorities.Query.new
-        :ok = Numerino.Db.Batcher.add_job(Batcher, new_priorities_query, [p, queue_id, :os.system_time], nil)
+        Task.async(Numerino.Db.Batcher.task_function(nil, new_priorities_query, [p, queue_id, :os.system_time]))
         {:ok, pid} = DispenserPersistentSup.start_dispenser s, self, {p, queue_id}
         {p, [], pid}
       end) 
@@ -46,9 +43,9 @@ defmodule NumerinoPersistent do
   end
 
   def init {:existing, queue_id, callback} do
-    {:ok, conn} = Numerino.Db.connect
     {:ok, s} = DispenserPersistentSup.start_link
-    priorities = Numerino.Db.Priorities.Query.from_queue conn, queue_id
+    priorities_from_queue_query = Numerino.Db.Priorities.Query.from_queue
+    priorities = Numerino.Db.Batcher.query(Batcher, priorities_from_queue_query, [queue_id], nil)
     list = Enum.map(priorities,
       fn {p_id, p} -> 
         {:ok, pid} = DispenserPersistentSup.start_dispenser s, self, {p, p_id}
@@ -65,7 +62,7 @@ defmodule NumerinoPersistent do
       nil -> {:reply, {:error, :not_found_priority}, list}
       
       {priority, empty, dispenser} when empty == :EOF or empty == [] ->
-          DispenserPersistent.push dispenser, message;
+          DispenserPersistent.push(dispenser, message);
           t = Task.async(DispenserPersistent, :peek, [dispenser, 100]);
           new_list = List.keyreplace(list, priority, 0, {priority, t, dispenser});
           {:reply, {:ok, {priority, message}}, new_list}
@@ -139,7 +136,16 @@ defmodule NumerinoPersistent do
     {:noreply, list}
   end
 
-  def handle_info {ref, mssg}, list do
+  def handle_info({_ref, {:batcher, nil, result}}, state) do
+    {:noreply, state}
+  end
+
+  def handle_info({_ref, {:batcher, from, result}}, state) do
+    GenServer.reply(from, result)
+    {:noreply, state}
+  end
+
+def handle_info {ref, mssg}, list do
     list = Enum.map(list, &find_list_with_ref({ref, mssg}, &1))
     {:noreply, list}
   end

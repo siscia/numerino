@@ -5,7 +5,8 @@ defmodule Numerino.Web do
     {:ok, _} = Plug.Adapters.Cowboy.http Numerino.Plug, []
     :observer.start()
     Numerino.Supervisor.start_link []
-  end  
+  end
+
 end
 
 defmodule Numerino.Plug do
@@ -79,7 +80,6 @@ defmodule Numerino.Plug do
   end
 
   get "/persistent/:id" do
-    id = String.to_integer(id)
     case :ets.lookup(Numerino.QueueAddress, id) do
       [{id, pid, :persistent}] -> pop_from_persistent_activated_queue(conn, pid)
       [] -> case activate_queue(id) do
@@ -97,7 +97,6 @@ defmodule Numerino.Plug do
   end
 
   post "/persistent/:id" do
-    id = String.to_integer(id)
     case :ets.lookup(Numerino.QueueAddress, id) do
       [{id, pid, :persistent}] -> push_to_persistent_activated_queue(conn, pid)
       [] -> case activate_queue id do
@@ -133,9 +132,9 @@ defmodule Numerino.Plug do
   end
 
   defp create_queue %{"type" => "persistent", "priorities" => p} do
-    {:ok, pid} = Numerino.QueueManager.Persistent.new_queue(:new, 1, p)
-    id = NumerinoPersistent.get_queue_id pid
-    {:ok, id, "persistent", p}
+    name = UUID.uuid4(:hex)
+    {:ok, pid} = Numerino.QueueManager.Persistent.new_queue(:new, name, 1, p)
+    {:ok, name, "persistent", p}
   end
 
   defp load_persistent_queue id do

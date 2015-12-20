@@ -24,7 +24,7 @@ end
 defmodule DispenserPersistent do
   use GenServer
 
-  defstruct db: nil, priority: nil, ready: false
+  defstruct db: nil, priority: nil, batched: []
 
   def start_link n, {p, id_p}, db, opts \\ [] do
     GenServer.start_link(__MODULE__, {:ok, n, {p, id_p}, db}, opts) 
@@ -59,22 +59,16 @@ defmodule DispenserPersistent do
     {:ok, %DispenserPersistent{db: db, priority: id_p}}
   end
 
-#  def handle_call :pop, _from, %DispenserPersistent{db: db, priority: priority} = d do
-#    {job_id, message} = Numerino.Db.Jobs.Query.pop(db, priority)
-#    DispenserPersistent.confirm_send(self, job_id)
-#    {:reply, message, d}
-#  end
-
   def handle_call {:push, message}, from, 
                   %DispenserPersistent{priority: priority} = d do
     query = Numerino.Db.Jobs.Query.new
-    :ok = Numerino.Db.Batcher.add_job(Batcher, query, [message, priority, :os.system_time], from)
+    Task.async(Numerino.Db.Batcher.task_function(from, query, [message, priority, :os.system_time]))
     {:noreply, d}
   end
 
   def handle_call {:confirm, job_id}, from, %DispenserPersistent{db: db} = d do
     query = Numerino.Db.Jobs.Query.confirm
-    :ok = Numerino.Db.Batcher.add_job(Batcher, query, [job_id], from)
+    Task.async(Numerino.Db.Batcher.task_function(from, query, [job_id]))
     {:noreply, d}
   end
 
@@ -87,6 +81,11 @@ defmodule DispenserPersistent do
   def handle_call :get_queue_id, _from, %DispenserPersistent{db: db, priority: p} = d do
     [{queue_id}] = Numerino.Db.Priorities.Query.get_queue_id db, p
     {:reply, queue_id, d} 
+  end
+
+  def handle_info({_ref, {:batcher, from, result}}, d) do
+    if from != nil, do: GenServer.reply(from, result)
+    {:noreply, d}
   end
 
   def handle_info {ref, :ok}, %DispenserPersistent{} = d do
