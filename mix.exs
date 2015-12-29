@@ -12,8 +12,7 @@ defmodule Numerino.Mixfile do
 
   def application do
     [applications: [:logger, :ranch, :crypto, :cowlib, :cowboy, :plug],
-     mod: {Numerino.Web, []}
-     ]
+     mod: {Numerino.Web, []}]
   end
 
   defp deps do
@@ -24,6 +23,9 @@ defmodule Numerino.Mixfile do
      {:sqlite_ecto, "~> 1.0.0"},
      {:comeonin, "~> 1.3.0"},
      {:uuid, "~> 1.1"},
-     {:exprof, "~> 0.2.0"}]
+     {:exprof, "~> 0.2.0"},
+     {:httpoison, "~> 0.8.0"},
+     {:hackney, "~> 1.4"},
+     {:heapq, "~> 0.0.1"}]
   end
 end

@@ -61,24 +61,25 @@ defmodule NumerinoPersistent do
     case queue do
       nil -> {:reply, {:error, :not_found_priority}, list}
       
+     
       {priority, empty, dispenser} when empty == :EOF or empty == [] ->
-          DispenserPersistent.push(dispenser, message);
+          Task.async(fn -> result = DispenserPersistent.push(dispenser, message); {:batcher, nil, result} end);
           t = Task.async(DispenserPersistent, :peek, [dispenser, 100]);
           new_list = List.keyreplace(list, priority, 0, {priority, t, dispenser});
           {:reply, {:ok, {priority, message}}, new_list}
       
       {priority, _value, dispenser} ->
-          DispenserPersistent.push dispenser, message;
+          Task.async(fn -> result = DispenserPersistent.push(dispenser, message); {:batcher, nil, result} end);
           {:reply, {:ok, {priority, message}}, list}
     end
   end
 
-  def handle_call :pop, _from, list do
+  def handle_call :pop, from, list do
     {list, value} = loop list
     case value do
       %{value: {job_id, mssg}, p_pid: p_pid} ->
-          :ok = DispenserPersistent.confirm p_pid, job_id
-          {:reply, {:ok, {job_id, mssg}}, list}
+          Task.async(fn -> :ok = DispenserPersistent.confirm(p_pid, job_id); {:confirm, :ok, from, {job_id, mssg}} end)
+          {:noreply, list}
       :EOF -> {:reply, {:ok, :EOF}, list}
     end
   end
@@ -134,6 +135,11 @@ defmodule NumerinoPersistent do
       _ -> list
     end
     {:noreply, list}
+  end
+
+  def handle_info({_ref, {:confirm, :ok, from, {job_id, mssg}}}, state) do
+    GenServer.reply(from, {:ok, {job_id, mssg}})
+    {:noreply, state}
   end
 
   def handle_info({_ref, {:batcher, nil, result}}, state) do

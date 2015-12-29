@@ -223,6 +223,10 @@ defmodule Numerino.Db.Batcher do
 
   def init(:ok) do
     {:ok, conn} = Numerino.Db.connect
+    Numerino.Db.Users.create_table conn
+    Numerino.Db.Queues.create_table conn
+    Numerino.Db.Priorities.create_table conn
+    Numerino.Db.Jobs.create_table conn
     :erlang.start_timer(100, self, :autofire)
     {:ok, {conn, :queue.new}}
   end
