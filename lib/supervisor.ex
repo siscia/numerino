@@ -28,7 +28,7 @@ defmodule Numerino.QueueManager.Transient do
   def init(:ok) do
     spawn Numerino.QueueManager.Transient, :restart_old_queues, []
     process = [
-      worker(Numerino, [])
+      worker(Numerino.Transient, [])
     ]
     supervise(process, strategy: :simple_one_for_one)
   end

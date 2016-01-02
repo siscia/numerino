@@ -43,7 +43,7 @@ defmodule Numerino.Plug do
   end
 
   def pop_from_transit_queue conn, pid do
-    case Numerino.pop(pid) do
+    case Numerino.Transient.pop(pid) do
       {:ok, :EOF} -> send_resp(conn, 404, JSON.encode!(%{status: :end_of_queue, message: "Not element in the queue"}))
       {:ok, {priority, message}} -> send_resp(conn, 200, JSON.encode!(%{status: :ok, message: message, priority: priority}))
     end
@@ -60,7 +60,7 @@ defmodule Numerino.Plug do
 
   def push_to_transient_queue conn, pid do
     %{"priority" => priority, "message" => message} = conn.params
-    case Numerino.push pid, priority, message do
+    case Numerino.Transient.push pid, priority, message do
       {:error, :not_found_priority} -> send_resp(conn, 400, error_push(priority, message))
       {:ok, {priority, message}} -> send_resp(conn, 200, success_message(priority, message)) 
     end
