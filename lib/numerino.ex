@@ -1,25 +1,3 @@
-
-defmodule DispenserSup do
-  use Supervisor
-
-  def start_link do
-    Supervisor.start_link(__MODULE__, :ok)
-  end
-
-  def init :ok do
-    children = [
-      worker(Dispenser, [])
-    ]
-
-    supervise(children, strategy: :simple_one_for_one)
-  end
-
-  def start_dispenser sup, n, priority do
-    Supervisor.start_child(sup, [n, priority])
-  end
-
-end
-
 defmodule Numerino.Transient do
   use GenServer
 
@@ -48,7 +26,6 @@ defmodule Numerino.Transient do
   end
 
   def handle_call({:push, priority, message}, _from, list) do
-
     case List.keyfind(list, priority, 0) do
       nil -> {:reply, {:error, :not_found_priority}, list}
       {^priority, queue} -> {:reply, {:ok, {priority, message}}, 
