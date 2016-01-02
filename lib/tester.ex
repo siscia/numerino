@@ -3,14 +3,21 @@ defmodule Mix.Tasks.Test.Numerino do
 
   @shortdoc "test the performance of Numerino"
 
-  def run(_) do
+  def run(args) do
     HTTPoison.start
     Numerino.Tester.Collector.start_link
-    for _ <- 1..20 do 
-      pid = spawn(fn -> first_run "http://localhost:4000" end)
-      :timer.kill_after(30 * 1000, pid)
+
+    {switch, _, _} = OptionParser.parse(args, strict: [processes: :integer, duration: :integer, url: :string])
+
+    processes = Keyword.get(switch, :processes, 30)
+    duration  = Keyword.get(switch, :duration,  30)
+    url       = Keyword.get(switch, :url, "http://localhost:4000")
+
+    for _ <- 1..processes do 
+      pid = spawn(fn -> first_run url end)
+      :timer.kill_after((duration + 1) * 1000, pid)
     end
-    :timer.sleep(31 * 1000)
+    :timer.sleep((duration + 5) * 1000)
     Mix.Shell.IO.info("\n\n\tCorrectness analysis: \n")
     correctness_analysis
     Mix.Shell.IO.info("\n\n\tPerformance analysis: \n")
@@ -208,8 +215,8 @@ end
 
 defmodule Numerino.Tester do
 
-  @queue_type ["transient", "persistent"]
-  #@queue_type ["transient"]
+  #@queue_type ["transient", "persistent"]
+  @queue_type ["transient"]
   @priority [
               ["1", "2", "3", "4", "5"],
               ["1", "2", "3"],
