@@ -20,7 +20,7 @@ defmodule DispenserSup do
 
 end
 
-defmodule Numerino do
+defmodule Numerino.Transient do
   use GenServer
 
   def start_link(priorities, callback, opts \\ []) do
@@ -35,84 +35,43 @@ defmodule Numerino do
     GenServer.call(n, :pop)
   end
 
-  def add_dispenser(n, priority, pid) do
-    GenServer.cast(n, {:add_dispenser, priority, pid})
-  end
-
   def inspect(numerino) do
     GenServer.call(numerino, :inspect)
   end
 
   def init({:ok, callback, priorities}) do
     callback.(self)
-    {:ok, s} = DispenserSup.start_link
-    list = Enum.map(priorities,
-      fn priority ->
-        DispenserSup.start_dispenser(s, self, priority);
-        {priority}
+    list = Enum.map(priorities, fn p 
+      -> {p, :queue.new}
       end)
-    {:ok, {list, s}}
+    {:ok, list}
   end
 
-  def handle_call({:push, priority, message}, _from, {list, s}) do
-    {_priority, _value, dispenser} = List.keyfind(list, priority, 0)
-    case dispenser do
-      nil -> {:reply, {:error, :not_found_priority}, {list, s}}
-      _ -> Dispenser.push(dispenser, message);
-           {:reply, {:ok, {priority, message}}, {list, s}}
+  def handle_call({:push, priority, message}, _from, list) do
+
+    case List.keyfind(list, priority, 0) do
+      nil -> {:reply, {:error, :not_found_priority}, list}
+      {^priority, queue} -> {:reply, {:ok, {priority, message}}, 
+                            List.keyreplace(list, priority, 0, {priority, :queue.in(message, queue)})}
     end
   end
 
-  defp do_single_pop({_priority, :EOF, pid}) do
-    {Dispenser.pop(pid), Dispenser.pop(pid)}
-  end
-
-  defp do_single_pop({_priority, [h | t], _pid}) do
-    {h, t}
-  end
-
-  defp update_value({priority, _old_value, pid}, new_value) do
-    {priority, new_value, pid}
-  end
-
-  defp regenerate_list(priority, next_value, pid, next_disp, acc_disp) do
-    [{priority, next_value, pid} | acc_disp]
-    |> Enum.reverse
-    |> Enum.concat(next_disp)
-  end
-
-  defp loop_priority([{priority, [h | t], pid} | next], acc) do
-    {{priority, h}, regenerate_list(priority, t, pid, next, acc)}
-  end
-
-  defp loop_priority([{priority, [], pid} = e | next], acc) do
-    case Dispenser.pop(pid) do
-      [h | t] -> {{priority, h}, regenerate_list(priority, t, pid, next, acc)}
-      [] -> loop_priority(next, [e | acc])
+  def handle_call(:pop, _from, list) do
+    do_pop = fn {p, queue}, acc ->
+      case acc do
+        :EOF -> case :queue.out(queue) do
+                  {:empty, queue} -> {{p, queue}, :EOF}
+                  {{:value, message}, new_queue} -> {{p, new_queue}, {p, message}}
+                end
+        _ -> {{p, queue}, acc}
+      end
     end
+    {list, mssg} = Enum.map_reduce(list, :EOF, do_pop)
+    {:reply, {:ok, mssg}, list}
   end
 
-  defp loop_priority([], acc) do
-    {:EOF, Enum.reverse(acc)}
-  end
-
-  def handle_call(:pop, _from, {list, s}) do
-    {value, list} = loop_priority(list, [])
-    {:reply, {:ok, value}, {list, s}}
-  end
-
-  def handle_call(:inspect, _from, {list, s}) do
-    {:reply, {list, s}, {list, s}}
-  end
-
-  def handle_cast({:add_dispenser, priority, pid}, {list, s}) do
-    value_to_keep = case List.keyfind(list, priority, 0) do
-                      {priority, l, pid} ->  l
-                      {priority} -> []
-                    end
-    new_list = List.keyreplace(list, priority, 0, {priority, value_to_keep, pid})
-    Dispenser.confirm(pid)
-    {:noreply, {new_list, s}}
+  def handle_call(:inspect, _from, list) do
+    {:reply, list, list}
   end
 
 end
