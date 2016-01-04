@@ -42,7 +42,7 @@ defmodule Numerino.Plug do
     end
   end
 
-  def pop_from_transit_queue conn, pid do
+  defp pop_from_transit_queue conn, pid do
     case Numerino.Transient.pop(pid) do
       {:ok, :EOF} -> send_resp(conn, 404, JSON.encode!(%{status: :end_of_queue, message: "Not element in the queue"}))
       {:ok, {priority, message}} -> send_resp(conn, 200, JSON.encode!(%{status: :ok, message: message, priority: priority}))
@@ -58,11 +58,28 @@ defmodule Numerino.Plug do
     end
   end
 
-  def push_to_transient_queue conn, pid do
+  delete "/:name" do
+    case :ets.lookup(Numerino.QueueAddress, name) do
+      [{^name, pid, _priorities}] -> delete_transient_queue(conn, pid, name)
+      [] -> send_resp(conn, 400, 
+              JSON.encode!(%{status: :error,
+                             message: "The transit queue #{name} does not exist."}))
+ 
+    end
+  end
+
+  defp push_to_transient_queue conn, pid do
     %{"priority" => priority, "message" => message} = conn.params
     case Numerino.Transient.push pid, priority, message do
       {:error, :not_found_priority} -> send_resp(conn, 400, error_push(priority, message))
       {:ok, {priority, message}} -> send_resp(conn, 200, success_message(priority, message)) 
+    end
+  end
+
+  defp delete_transient_queue(conn, pid, name) do
+    case Numerino.QueueManager.Transient.terminate_child(pid, name) do
+      :ok -> send_resp(conn, 200, JSON.encode!(%{status: :ok, message: "Successfully deleted queue: #{name}"}))
+      _   -> send_resp(conn, 500, JSON.encode!(%{status: :error, message: "Error in deleting queue: #{name}"})) 
     end
   end
 

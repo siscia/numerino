@@ -8,8 +8,7 @@ defmodule Numerino.Supervisor do
   def init(_) do
     processes = [
       worker(Numerino.QueueAddress, []),
-      supervisor(Numerino.QueueManager.Transient, []),
-      worker(Numerino.Db.Batcher, [[name: Batcher]])
+      supervisor(Numerino.QueueManager.Transient, [])
     ]
     supervise(processes, strategy: :rest_for_one)
   end
@@ -55,6 +54,12 @@ defmodule Numerino.QueueManager.Transient do
   def restart_old_queues do
     :ets.foldl(&do_restart_old_queue/2, 0, Numerino.QueueAddress)
   end
+
+  def terminate_child(pid, name) do
+    {:ok, ^name} = Numerino.QueueAddress.remove_queue(name)
+    Supervisor.terminate_child(@self, pid)
+  end
+
 end
 
 defmodule Numerino.QueueAddress do
@@ -71,6 +76,10 @@ defmodule Numerino.QueueAddress do
     GenServer.call(@server_name, {:follow, pid, name, priorities})
   end
 
+  def remove_queue(name) do
+    GenServer.call(@server_name, {:remove, name})
+  end
+
   def init(:ok) do
     @table_name = :ets.new(@table_name,
                   [:named_table, {:read_concurrency, true}])
@@ -80,5 +89,10 @@ defmodule Numerino.QueueAddress do
   def handle_call({:follow, pid, name, priorities}, _from, state) do
     :ets.insert(@table_name, {name, pid, priorities})
     {:reply, name ,state}
+  end
+
+  def handle_call({:remove, name}, _from, state) do
+    :ets.delete(@table_name, name)
+    {:reply, {:ok, name}, state}
   end
 end
