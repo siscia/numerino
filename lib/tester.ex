@@ -32,9 +32,9 @@ defmodule Mix.Tasks.Test.Numerino do
     result = Numerino.Tester.Analyzer.check_correctness analytics
     correct = Enum.filter(result, fn {_, {bool, _}} -> bool == true end)
     wrong = Enum.filter(result, fn {_, {bool, _}} -> bool == false end)
-    Mix.Shell.IO.info "\tQueue created:  \t\t #{length(result)}"
-    Mix.Shell.IO.info "\tCorrect queues: \t\t #{length(correct)}"
-    Mix.Shell.IO.info "\tWrong queues:   \t\t #{length(wrong)}"
+    Mix.Shell.IO.info "\t\tQueue created:  \t\t #{length(result)}"
+    Mix.Shell.IO.info "\t\tCorrect queues: \t\t #{length(correct)}"
+    Mix.Shell.IO.info "\t\tWrong queues:   \t\t #{length(wrong)}"
   end
 
   defp performance_analysis do
@@ -47,11 +47,11 @@ defmodule Mix.Tasks.Test.Numerino do
     Mix.Shell.IO.info "\tTotal requests: #{total_request}"
     Mix.Shell.IO.info "\tTotal time: #{total_time} msec"
     Mix.Shell.IO.info "\tRequest per second: #{total_request / total_time * 1_000}"
-    Mix.Shell.IO.info "\n\tPercentile: "
+    Mix.Shell.IO.info "\n\tPercentile: \n"
     for i <- [0.50, 0.80, 0.90, 0.95, 0.96, 0.97, 0.98, 0.99, 0.999, 0.9995, 0.9999, 0.99999] do
       time = Numerino.Tester.Analyzer.percentile(analytics, i).elapsed_time
       time = :erlang.convert_time_unit(time, :native, :micro_seconds)
-      Mix.Shell.IO.info "\tOrder: #{i} \t #{time} \tμsec"
+      Mix.Shell.IO.info "\t\tOrder: #{i} \t #{time} \t\tμsec"
     end
   end
 
@@ -93,6 +93,12 @@ defmodule Numerino.Tester.Analyzer do
     r |> Map.put(:message, message) |> Map.put(:priority, priority)
   end
 
+  defp analyze_round %{request_type: :pop, status_code: 200} = r do
+    %{response: %{body: body}} = r
+    %{"message" => message, "priority" => priority} = JSON.decode!(body)
+    r |> Map.put(:message, message) |> Map.put(:priority, priority)
+  end
+
   defp analyze_round %{request_type: :pop} = r do
     %{response: %{body: body}} = r
     %{"message" => message} = JSON.decode!(body)
@@ -107,9 +113,10 @@ defmodule Numerino.Tester.Analyzer do
   end
 
   def order_partition %Numerino.Tester.Analyzer{partition: p} = a do
-    for k <- Dict.keys(p) do
-      p = Dict.update(p, k, [], fn rounds -> Enum.sort_by(rounds, fn r -> r.end_time end) end)
-    end
+    
+    p = p
+    |> Enum.map(fn {k, v} -> {k, Enum.sort_by(v, &(&1.end_time))} end)
+    |> Enum.into(%{})
     %Numerino.Tester.Analyzer{a | partition: p}
   end
 
@@ -122,21 +129,22 @@ defmodule Numerino.Tester.Analyzer do
     Enum.map_reduce(partition, {true, HeapQueue.new},
         fn p, {bool, q} ->
           if bool == false do 
-            {{:skipped, p.request_type, p.message}, {false, q}}
+            {{:skipped, p.request_type, p.message, (if Map.get(p, :priority), do: p.priority, else: nil), p.start_time, p.end_time}, {false, q}}
           else
             case p.request_type do
-              :push -> {{:ok, :push, p.message}, 
+              :push -> {{:ok, :push, p.message, p.priority, p.start_time, p.end_time}, 
                         {true, HeapQueue.push(q, priorities[p.priority], p.message)}}
               :pop -> case p.response.status_code do
                         404 -> case HeapQueue.pop(q) do
-                                  {:empty, new_queue} -> {{:ok, :pop, p.message}, {true, new_queue}}
+                                  {:empty, new_queue} -> {{:ok, :pop, p.message, :no_priority, p.start_time, p.end_time}, 
+                                                          {true, new_queue}}
                                   _ -> {{:wrong, :pop, p.message}, {false, q}}
                                 end
                         200 -> message = p.message;
                                case HeapQueue.pop(q) do
-                                  {{:value, _priority, ^message}, new_queue} -> {{:ok, :pop, p.message}, 
+                                  {{:value, _priority, ^message}, new_queue} -> {{:ok, :pop, p.message, p.priority, p.start_time, p.end_time}, 
                                                                                  {true, new_queue}}
-                                  _ -> {{:wrong, :pop, p.message}, {false, q}}
+                                  _ -> {{:wrong, :pop, p.message, nil, p.start_time, p.end_time}, {false, q}}
                                 end
                       end
               :new -> {{:ok, p.request_type}, {true, q}}

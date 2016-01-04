@@ -19,32 +19,25 @@ defmodule Numerino.Transient do
 
   def init({:ok, callback, priorities}) do
     callback.(self)
-    list = Enum.map(priorities, fn p 
-      -> {p, :queue.new}
-      end)
-    {:ok, list}
+    {:ok, Numerino.Queue.new(priorities)}
   end
 
   def handle_call({:push, priority, message}, _from, list) do
-    case List.keyfind(list, priority, 0) do
-      nil -> {:reply, {:error, :not_found_priority}, list}
-      {^priority, queue} -> {:reply, {:ok, {priority, message}}, 
-                            List.keyreplace(list, priority, 0, {priority, :queue.in(message, queue)})}
+    case Numerino.Queue.push(list, priority, message) do
+      {:ok, new_list} ->
+        {:reply, {:ok, {priority, message}}, new_list}
+      {:error, :not_found_priority} ->
+        {:reply, {:error, :not_found_priority}, list}
     end
-  end
+  end    
 
   def handle_call(:pop, _from, list) do
-    do_pop = fn {p, queue}, acc ->
-      case acc do
-        :EOF -> case :queue.out(queue) do
-                  {:empty, queue} -> {{p, queue}, :EOF}
-                  {{:value, message}, new_queue} -> {{p, new_queue}, {p, message}}
-                end
-        _ -> {{p, queue}, acc}
-      end
+    case Numerino.Queue.pop(list) do
+      {{:value, {priority, message}}, new_list} ->
+        {:reply, {:ok, {priority, message}}, new_list}
+      {:empty, new_list} ->
+        {:reply, {:ok, :EOF}, new_list}
     end
-    {list, mssg} = Enum.map_reduce(list, :EOF, do_pop)
-    {:reply, {:ok, mssg}, list}
   end
 
   def handle_call(:inspect, _from, list) do

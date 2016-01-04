@@ -278,8 +278,8 @@ defmodule Numerino.Db.Batcher do
             _ -> :ok
           end
         end)
-      ## IO.write ">>> "
-      ## IO.puts length(queries)
+      IO.write ">>> "
+      IO.puts length(queries)
       :ok
     end
   end
