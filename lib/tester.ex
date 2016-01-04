@@ -223,7 +223,6 @@ end
 
 defmodule Numerino.Tester do
 
-  #@queue_type ["transient", "persistent"]
   @queue_type ["transient"]
   @priority [
               ["1", "2", "3", "4", "5"],
@@ -238,7 +237,7 @@ defmodule Numerino.Tester do
     queue_type = Enum.random(@queue_type)
     priorities = Enum.random(@priority)
     body = JSON.encode!(%{type: queue_type, priorities: priorities})
-    url = url <> "/" <> queue_type
+    url = url <> "/" 
     {st1, mt1} = get_time
     {:ok, response} = HTTPoison.post(url, body, @header)
     {st2, mt2} = get_time
@@ -253,7 +252,7 @@ defmodule Numerino.Tester do
 
   def pop(url)do
     %{name: name, queue_type: queue_type} = Numerino.Tester.Collector.random_queue
-    url = url <> "/" <> queue_type <> "/" <> name
+    url = url <> "/" <> name
     {st1, mt1} = get_time
     {:ok, response} = HTTPoison.get(url, @header)
     {st2, mt2} = get_time
@@ -266,7 +265,7 @@ defmodule Numerino.Tester do
 
   def push(url) do
     %{name: name, queue_type: queue_type, priorities: priorities} = Numerino.Tester.Collector.random_queue
-    url = url <> "/" <> queue_type <> "/" <> name
+    url = url <> "/" <> name
     body = JSON.encode!(%{priority: Enum.random(priorities), message: UUID.uuid4})
     {st1, mt1} = get_time
     {:ok, response} = HTTPoison.post(url, body, @header)
