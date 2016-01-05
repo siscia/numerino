@@ -24,6 +24,40 @@ This is the very first release of `Numerino` I tried to provide the smallest use
 
 I hope the community to use the project and suggest features and improvements to the software.
 
+## About the code
+
+If you look at the code it really looks like a joke, this README is likely longer than the code itself.
+
+I tried my best to keep it as small and simple as possible, I rewrote it all several time and this is the best version I can come up with, it is also the smallest.
+
+## Correctness
+
+Write concurrent code is extremelly hard, I did my best by keeping the scope as small as possible and using very simple data structure, still there is nasty bug I am not able to fix.
+
+In the case of a write immediately followed by a read in a particular configuration, the system could reply like the write didn't take place yet, even if the write itself is been acknoledged, fortunately the message is not lost and it will show up in the next read.
+
+I have actually no idea why this happen, and the only explaination I was able to give myself sound like a "compiler bug" so I don't really want to believe in that.
+
+I want to reiterate that to reproduce this nasty bug the queue need to be in a particular configuration and that the write and read request are almost perfectly concurrent.
+
+## Performance
+
+The code is written in Elixir/Erlang as such it takes as much advantages as possible from many processor, better a slow machine with a lot of processor than a fast machine with few.
+
+It is fast ?
+
+'There is not such thing as fast, but only fast enough' - Cit. Joe Armstrong
+
+For small - medium size workload, given the necessary hardware it should be fast enough, a benchmark using a cloud host is coming soon.
+
+## A word of caution
+
+Before that I show you the API I need to clarify that `Numerino` is my first experience developing in Elixir/Erlang/OTP, I tried to do my best but obviously I could have get a lot of things in the wrong way.
+
+I would suggest you to test it, see if it runs following your expectation and necessities then run it in a secure environment and finally, if everything went good use it in production.
+
+You are also warmly encourange to send me an email (visible in my github profile) at any of those step, we can discuss about your expected load, the performace you need to achieve and the hardware you have available.
+
 ## Use
 
 `Numerino` has been developed to manage a big number of queues, queues are cheap and you are encourange to start as many queues as you need, however they do use memory, very few memory but still significant, after you have done your job with your queue is still better to clean up.
