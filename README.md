@@ -1,78 +1,58 @@
-Numerino
-========
+# Numerino
 
-Simple priority Queue in Elixir
+Simple in memory Priority Queue
 
-For now the priority levels are hardcoded and are only 4: "critical", "high", "medium" and "low"
+Numerino aims to be a standard, rock solid priority queue for any necessities.
 
-The queue can be started using
+I try to follow the UNIX philosophy to do only one thing and do it extremelly well.
 
-```
-mix run --no-halt
-```
+## Use cases
 
-from now on two endpoint are available.
+A priority queue can be used in a lot of different scenarios, I am not trying to assume how you will use but I am only trying to provide the best platform to let you accomplish your job.
 
-`GET` will pop from the queue.
-`POST` will push on on the queue.
+Since I have done no asumption of how you are going to use `Numerino` I sticked to use only strings, these because I find string to be a great compromise between flexibility and human-friendliness.
 
-The POST endpoint require a JSON to be sent, the JSON need two keys: `priority` and `element`.
+The priority are internally rappresentent as string, as well is possible to enqueue only strings.
 
-The `priority` key will indicate the priority of the message, the `element` key can be anything.
 
-When you pop from the queue with a `GET` request you will receive a pair {`priority` : `element`} or `EOF`.
 
-If you receive an `EOF` it means that the queue is empty.
+Example of use can be as a manager for a web crawler,
 
-Contributing
-============
+## Work in progress
 
-Please!
+This is the very first release of `Numerino` I tried to provide the smallest useful piece of software I could come out with, there are pretty much no features but it is reasonably fast and reasonably correct.
 
-To Do, Low Hanging fruit
-------------------------
+I hope the community to use the project and suggest features and improvements to the software.
 
-    [ ] Right now the queue is completely volatile, if the server crash for some reason all the job queue will be lost, it can be acceptable, or not.
+## Use
 
-    [ ] Only one, hardcoded queue is present, it should be possible to create new queue with custom level of priorities.
+`Numerino` has been developed to manage a big number of queues, queues are cheap and you are encourange to start as many queues as you need, however they do use memory, very few memory but still significant, after you have done your job with your queue is still better to clean up.
 
-Rules
------
+`Numerino` provides a REST-like JSON API very scarse.
 
-Please, before to contribute, benchmark your work.
+Every queue is a resource and you can create a new queue via a simple `POST` request.
 
-Is extremely simple to run the benchmark.
+The requets need only to know what priorities you are allocating for the queue.
 
-First of all you need [siege](https://www.joedog.org/siege-manual/#)
+If everything goes right, the response will provide the `name` of the queue you have just created.
 
-`sudo apt-get install siege`
+To push a new object in the queue all you need is another `POST` request, to communicate the object you want to save in the queue and what priority associate with such object.
 
-Then you need to generate a benchmark, you can simply run
+Finally to pop from the queue you only need a `GET` request with will respond with the first element in the queue and its priority.
 
-```
-python generate_traffic.py siege_benchmark.txt 5000 
-```
+### API
 
-to generate a siege file (siege_benchmark.txt) which contains 5000 lines, 3 out of 4 call will be `POST` call, the last will be a `GET` call.
+#### REQUEST
 
-Now you can start `Numerino` with
+**Action:** Create New Queue
+**Verb:** POST
+**URL:** "/"
+**Body:** {"priorities" : ["list", "of", "priorities"]}
 
-```
-cd numerino
-mix run --no-halt
-```
+#### RESPONSE
 
-Now you can start your benchmark
+**Code:** 201
+**Body:** {"message":"New transient queue created","queue":{"name": "name_of_the_queue","priorities":["list", "of", "priorities"],"type":"transient"},"result":"ok"}
 
-```
-siege -f siege_benchmark.txt -c 500 -b
-```
 
-Let the test run for a little bit, 20sec are enought.
-
-Please move the number of concurent user (-c) up and down, try values such as 10, 25, 50, 100, 250, 500, 1000 on your local machine.
-
-Also, do not forget the -b option, it means `benchmark`.
-
-Retry the same test with your patch and without, and post the result.
 
