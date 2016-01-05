@@ -3,7 +3,6 @@ defmodule Numerino.Web do
 
   def start(_type, _args) do
     {:ok, _} = Plug.Adapters.Cowboy.http Numerino.Plug, []
-    :observer.start()
     Numerino.Supervisor.start_link []
   end
 
