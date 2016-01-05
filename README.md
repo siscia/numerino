@@ -20,7 +20,7 @@ Example of use can be as a manager for a web crawler, or to manage CPU intenive 
 
 This is the very first release of `Numerino` I tried to provide the smallest useful piece of software I could come out with, there are pretty much no features but it is reasonably fast and reasonably correct.
 
-I hope the community to use the project and suggest features and improvements to the software.
+I hope the community will use the project and suggest features and improvements to the software.
 
 ## About the code
 
@@ -32,7 +32,7 @@ I tried my best to keep it as small and simple as possible, I rewrote it all sev
 
 Write concurrent code is extremelly hard, I did my best by keeping the scope as small as possible and using very simple data structure, still there is nasty bug I am not able to fix.
 
-In the case of a write immediately followed by a read in a particular configuration, the system could reply like the write didn't take place yet, even if the write itself is been acknoledged, fortunately the message is not lost and it will show up in the next read.
+In the case of a write immediately followed by a read on the same queue in a particular configuration of the queue itself, the system could reply like the write didn't take place yet, even if the write itself is been acknoledged, fortunately the message is not lost and it will show up in the next read.
 
 I have actually no idea why this happen, and the only explaination I was able to give myself sound like a "compiler bug" so I don't really want to believe in that.
 
@@ -47,6 +47,12 @@ It is fast ?
 'There is not such thing as fast, but only fast enough' - Cit. Joe Armstrong
 
 For small - medium size workload, given the necessary hardware it should be fast enough, a benchmark using a cloud host is coming soon.
+
+## Safeness
+
+`Numerino` use only HTTP and don't have any authentication nor authorization mechanism, yet.
+
+It means that you need to run it in your own local infrastracture and don't open it to the world.
 
 ## A word of caution
 
