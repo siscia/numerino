@@ -70,6 +70,7 @@ defmodule Numerino.Plug do
 
   defp push_to_transient_queue conn, pid do
     %{"priority" => priority, "message" => message} = conn.params
+    priority = to_string(priority)
     case Numerino.Transient.push pid, priority, message do
       {:error, :not_found_priority} -> send_resp(conn, 400, error_push(priority, message))
       {:ok, {priority, message}} -> send_resp(conn, 200, success_message(priority, message)) 
