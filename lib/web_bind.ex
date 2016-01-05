@@ -24,7 +24,7 @@ defmodule Numerino.Plug do
   post "/" do
     case create_queue(conn.params) do
       {:ok, name, "transient", p} -> send_resp(conn, 201, 
-                        JSON.encode!(%{result: :ok, 
+                        JSON.encode!(%{status: :ok, 
                                        message: "New transient queue created", 
                                        queue: %{name: name,
                                                 type: "transient",
@@ -87,7 +87,7 @@ defmodule Numerino.Plug do
     send_resp(conn, 400, "Not found.")
   end
 
-  defp create_queue %{"type" => "transient", "priorities" => p} do
+  defp create_queue %{"priorities" => p} do
     name = UUID.uuid4(:hex)
     {:ok, _pid} = Numerino.QueueManager.Transient.new_queue(name, p)
     {:ok, name, "transient", p}
@@ -108,7 +108,7 @@ defmodule Numerino.Plug do
   end
 
   defp success_message priority, object do
-    JSON.encode!( %{result: :success, 
+    JSON.encode!( %{status: :ok, 
                     message: "Insert new object with the message: #{object} under the priority #{priority}", 
                     priority: priority, message: object})
   end

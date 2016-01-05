@@ -56,7 +56,7 @@ Finally to pop from the queue you only need a `GET` request with will respond wi
 
 **Code:** 201
 
-**Body:** ``` {"message":"New transient queue created","queue":{"name": "name_of_the_queue","priorities":["high", "medium", "low"],"type":"transient"},"result":"ok"}```
+**Body:** ``` {"message":"New transient queue created","queue":{"name": "name_of_the_queue","priorities":["high", "medium", "low"],"type":"transient"},"status":"ok"}```
 
 #### DESCRIPTION
 
@@ -78,7 +78,7 @@ The name of the queue is going to be a UUID version 4, something that will looks
 
 **Code:** 200
 
-**Body:** ``` {"message" : "foo bar", "priority" : "medium", "result" : "success"}```
+**Body:** ``` {"message" : "foo bar", "priority" : "medium", "status" : "success"}```
 
 #### DESCRIPTION
 
@@ -124,7 +124,7 @@ If the queue is not empty and at least an element is still on the queue you will
 
 **Code:** 200
 
-**Body:** {"message":"Successfully deleted queue: :name","status":"ok"}
+**Body:** ```{"message":"Successfully deleted queue: :name","status":"ok"}```
 
 #### DESCRIPTION
 
