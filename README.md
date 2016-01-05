@@ -50,13 +50,61 @@ Finally to pop from the queue you only need a `GET` request with will respond wi
 
 **URL:** `/`
 
-**Body:** ```{"priorities" : ["list", "of", "priorities"]}```
+**Body:** ```{"priorities" : ["high", "medium", "low"]}```
 
 #### RESPONSE
 
 **Code:** 201
 
-**Body:** ``` {"message":"New transient queue created","queue":{"name": "name_of_the_queue","priorities":["list", "of", "priorities"],"type":"transient"},"result":"ok"}```
+**Body:** ``` {"message":"New transient queue created","queue":{"name": "name_of_the_queue","priorities":["high", "medium", "low"],"type":"transient"},"result":"ok"}```
+
+#### DESCRIPTION
+
+The name of the queue is going to be a UUID version 4, something that will looks like this: `d384536bb80a405cb7a4dfe7ef1bcacd`, you will need the name for every action you are going to execute on the queue.
 
 
 
+#### REQUEST
+
+**Action:** Push
+
+**Verb:** `POST`
+
+**URL:** `/:name`
+
+**Body:** ```{"priority" : "medium", "message" : "foo bar"}```
+
+#### RESPONSE
+
+**Code:** 200
+
+**Body:** ``` {"message" : "foo bar", "priority" : "medium", "result" : "success"}```
+
+#### DESCRIPTION
+
+The `:name` in the URL is the name that is been returned from the creation of the queue.
+
+
+#### REQUEST
+
+**Action:** Pop
+
+**Verb:** `GET`
+
+**URL:** `/:name`
+
+#### RESPONSE
+
+**Code:** 200
+
+**Body:** ``` {"message" : "foo bar", "priority" : "medium" ,"status":"ok"}```
+
+**Code:** 404
+
+**Body:** ``` {"message":"Not element in the queue","status":"end_of_queue"}```
+
+#### DESCRIPTION
+
+The `:name` in the URL is the name that is been returned from the creation of the queue.
+
+If the queue is not empty and at least an element is still on the queue you will get the first response, if the queue is empty you will get the second one.
