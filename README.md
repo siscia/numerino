@@ -108,3 +108,29 @@ The `:name` in the URL is the name that is been returned from the creation of th
 The `:name` in the URL is the name that is been returned from the creation of the queue.
 
 If the queue is not empty and at least an element is still on the queue you will get the first response, if the queue is empty you will get the second one.
+
+
+
+#### REQUEST
+
+**Action:** Delete Queue
+
+**Verb:** `DELETE`
+
+**URL:** `/:name`
+
+
+#### RESPONSE
+
+**Code:** 200
+
+**Body:** {"message":"Successfully deleted queue: :name","status":"ok"}
+
+#### DESCRIPTION
+
+The `:name` in the URL is the name that is been returned from the creation of the queue.
+
+This operation is permanent, there is no way to retrieve the messages on the delete queue, it will free up space.
+
+
+
