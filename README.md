@@ -62,7 +62,7 @@ Finally to pop from the queue you only need a `GET` request with will respond wi
 
 The name of the queue is going to be a UUID version 4, something that will looks like this: `d384536bb80a405cb7a4dfe7ef1bcacd`, you will need the name for every action you are going to execute on the queue.
 
-
+* * *
 
 #### REQUEST
 
@@ -78,12 +78,13 @@ The name of the queue is going to be a UUID version 4, something that will looks
 
 **Code:** 200
 
-**Body:** ``` {"message" : "foo bar", "priority" : "medium", "status" : "success"}```
+**Body:** ``` {"message" : "foo bar", "priority" : "medium", "status" : "ok"}```
 
 #### DESCRIPTION
 
 The `:name` in the URL is the name that is been returned from the creation of the queue.
 
+* * *
 
 #### REQUEST
 
@@ -109,7 +110,7 @@ The `:name` in the URL is the name that is been returned from the creation of th
 
 If the queue is not empty and at least an element is still on the queue you will get the first response, if the queue is empty you will get the second one.
 
-
+* * *
 
 #### REQUEST
 
