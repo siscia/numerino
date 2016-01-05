@@ -45,13 +45,17 @@ Finally to pop from the queue you only need a `GET` request with will respond wi
 #### REQUEST
 
 **Action:** Create New Queue
+
 **Verb:** POST
+
 **URL:** "/"
+
 **Body:** {"priorities" : ["list", "of", "priorities"]}
 
 #### RESPONSE
 
 **Code:** 201
+
 **Body:** {"message":"New transient queue created","queue":{"name": "name_of_the_queue","priorities":["list", "of", "priorities"],"type":"transient"},"result":"ok"}
 
 
