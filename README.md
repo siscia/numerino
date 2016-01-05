@@ -46,9 +46,9 @@ Finally to pop from the queue you only need a `GET` request with will respond wi
 
 **Action:** Create New Queue
 
-**Verb:** POST
+**Verb:** `POST`
 
-**URL:** "/"
+**URL:** `/`
 
 **Body:** ```{"priorities" : ["list", "of", "priorities"]}```
 
