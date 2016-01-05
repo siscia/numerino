@@ -14,9 +14,7 @@ Since I have done no asumption of how you are going to use `Numerino` I sticked 
 
 The priority are internally rappresentent as string, as well is possible to enqueue only strings.
 
-
-
-Example of use can be as a manager for a web crawler,
+Example of use can be as a manager for a web crawler, or to manage CPU intenive work on a cluster, or pretty much anythig that need to be done in order.
 
 ## Work in progress
 
