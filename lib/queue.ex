@@ -29,7 +29,7 @@ defmodule Numerino.Queue do
     {new_list, mssg} = Enum.map_reduce(list, :EOF, do_pop)
     case mssg do
       :EOF -> {:empty, new_list}
-      {p, message} -> {{:value, mssg}, new_list}
+      {_p, _message} -> {{:value, mssg}, new_list}
     end
   end
 end

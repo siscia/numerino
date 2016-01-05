@@ -19,11 +19,7 @@ defmodule Numerino.Mixfile do
     [{:json, "~> 0.3.0"},
      {:cowboy, "1.0.0"},
      {:plug, "1.0.2"},
-     {:esqlite, "0.2.1"},
-     {:sqlite_ecto, "~> 1.0.0"},
-     {:comeonin, "~> 1.3.0"},
      {:uuid, "~> 1.1"},
-     {:exprof, "~> 0.2.0"},
      {:httpoison, "~> 0.8.0"},
      {:hackney, "~> 1.4"},
      {:heapq, "~> 0.0.1"}]
