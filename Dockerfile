@@ -1,4 +1,4 @@
-FROM shanesveller/elixir-lang:1.1.1
+FROM siscia/elixir-lang-arm:1.1.1
 
 MAINTAINER Simone Mosciatti <simone@mweb.biz>
 
