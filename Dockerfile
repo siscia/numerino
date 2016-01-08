@@ -1,44 +1,27 @@
-FROM armv7/armhf-ubuntu_core:14.04.2
+FROM resin/rpi-raspbian
 
-MAINTAINER Simone Mosciatti <simone@mweb.biz>
+MAINTAINER Simone Mosciatti
 
-WORKDIR /
+# Set the locale
+RUN locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8
 
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update -q && \
-    apt-get -y install curl locales wget libssl-dev ncurses-dev git && \
-    locale-gen "en_US.UTF-8" && \
-    export LANG=en_US.UTF-8 && \
-    wget http://www.erlang.org/download/otp_src_18.2.1.tar.gz && \
-    tar -xzvf otp_src_18.2.1.tar.gz
+RUN apt-get install wget
 
-WORKDIR otp_src_18.2.1/
+RUN wget http://packages.erlang-solutions.com/erlang/elixir/FLAVOUR_2_download/elixir_1.1.1-1~raspbian~wheezy_armhf.deb
 
-RUN ./configure && \
-    make
-    make install
+RUN echo "deb http://packages.erlang-solutions.com/debian wheezy contrib" >> /etc/apt/sources.list
 
-WORKDIR /
+RUN wget http://packages.erlang-solutions.com/debian/erlang_solutions.asc && \
+    apt-key add erlang_solutions.asc
 
-RUN rm -R otp_src_18.2.1/
-
-ENV LANG=en_US.UTF-8
-
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp
-
-RUN git clone https://github.com/elixir-lang/elixir.git elixir
-
-WORKDIR /elixir
-
-RUN git checkout v1.1.1
-
-RUN make clean test
+RUN apt-get update && apt-get install erlang && apt-get install elixir
 
 RUN git clone https://github.com/siscia/numerino.git numerino
 
 WORKDIR /numerino
 
-RUN git checkout v0.1.3
+RUN git checkout v0.1.4
 
 RUN mix deps.get
 
