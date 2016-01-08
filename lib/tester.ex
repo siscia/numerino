@@ -89,7 +89,7 @@ defmodule Numerino.Tester.Analyzer do
 
   defp analyze_round %{request_type: :push} = r do
     %{response: %{body: body}} = r
-    %{"message" => message, "priority" => priority, "result" => "success"} = JSON.decode!(body)
+    %{"message" => message, "priority" => priority, "status" => "ok"} = JSON.decode!(body)
     r |> Map.put(:message, message) |> Map.put(:priority, priority)
   end
 
