@@ -27,7 +27,7 @@ RUN git clone https://github.com/siscia/numerino.git numerino
 
 WORKDIR /numerino
 
-RUN git checkout v0.1.4
+RUN git checkout v0.1.5
 
 RUN mix local.hex --force && \
     mix local.rebar --force
@@ -38,4 +38,5 @@ RUN mix compile
 
 EXPOSE 4000
 
+EXPOSE 5000
 
