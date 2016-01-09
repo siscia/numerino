@@ -5,6 +5,10 @@ use Mix.Config
 config :numerino, Numerino.Db,
   %{:path => ':memory:'}
 
+config :kernel,
+    inet_dist_listen_min: 5000,
+    inet_dist_listen_max: 5010
+
 #config :numerino, Numerino.Repo,
 #  adapter: Ecto.Adapters.Postgres,
 #  database: "numerino_repo",
