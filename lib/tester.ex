@@ -221,7 +221,71 @@ defmodule Numerino.Tester.Collector do
   end
 end
 
-defmodule Numerino.Tester do
+defmodule Numerino.Listener do
+  use GenServer
+
+  defstruct request: %{}, response: %{}
+
+  def start_link do
+    GenServer.start_link(__MODULE__, :ok, [])
+  end
+
+  def request(server, {ref, time}) do
+    GenServer.call(server, {:request, {ref, time}})
+  end
+
+  def unload(server, key) do
+    GenServer.call(server, {:unload, key})
+  end
+
+  def init :ok do
+    {:ok, %Numerino.Listener{}}
+  end
+
+  def handle_call({:request, {ref, time}}, _from, %Numerino.Listener{request: r} = l) do
+    {:reply, :ok, %Numerino.Listener{l | request: Map.put(r, ref, {ref, time})}}
+  end
+
+  def handle_call({:unload, :request}, _from, %{request: r} = l) do
+    {:reply, {:ok, {:request, r}}, l}
+  end
+
+  def handle_call({:unload, :response}, _from, %{response: r} = l) do
+    {:reply, {:ok, {:reponse, r}}, l}
+  end
+
+  def handle_info(%HTTPoison.AsyncChunk{id: id} = chunk, %Numerino.Listener{response: r} = l) do
+    {:noreply, %Numerino.Listener{l | 
+      response: Map.update(r, id, chunk, fn v -> Map.merge(v, chunk, &merge_response/3) end)}}
+  end
+
+  def handle_info(%HTTPoison.AsyncEnd{id: id} = response, %Numerino.Listener{response: r} = l) do
+    if r[id].code == 201 do
+      %{"queue" => %{"name" => name, "type" => type, "priorities" => p}} = JSON.decode!(r[id].chunk);
+      Numerino.Tester.Collector.new_queue(%{name: name, queue_type: type, priorities: p})
+    end
+    {:noreply, %Numerino.Listener{l | response: Map.update(r, id, response, &(Map.merge(&1, response)))}}
+  end
+
+  def handle_info(%{id: id} = response, %Numerino.Listener{response: r} = l) do
+    response_with_time = Map.put(response, :respose_time, get_time())
+    {:noreply, %Numerino.Listener{l | response: Map.update(r, id, response_with_time, &(Map.merge(&1, response)))}}
+  end
+
+  def merge_response :chunk, c1, c2 do
+    c1 <> c2
+  end
+  
+  def merge_response _, _v1, v2 do
+    v2
+  end
+
+  defp get_time do
+    {:erlang.system_time, :erlang.monotonic_time}
+  end
+end
+
+defmodule Numerino.Requester do
 
   @queue_type ["transient"]
   @priority [
