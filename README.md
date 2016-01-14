@@ -46,7 +46,21 @@ It is fast ?
 
 'There is not such thing as fast, but only fast enough' - Cit. Joe Armstrong
 
-For small - medium size workload, given the necessary hardware it should be fast enough, a benchmark using a cloud host is coming soon.
+Said so still I am pretty satisfied of the performance.
+
+I run the code using [Scaleway](https://www.scaleway.com/), it run on 4 ARMv7 cores, with 2GB of RAM, more information about the server are [here](https://www.scaleway.com/faq/server/).
+
+I used [wrk](https://github.com/wg/wrk) to test the software using a custom script available [here](https://gist.github.com/siscia/d9d72086110c80d75ea6)
+
+The result are summarized here:
+
+![5 Minutes Benchmark](https://github.com/siscia/numerino/blob/images/5MinuteBenchMark.png)
+
+![10 Minutes Benchmark](https://github.com/siscia/numerino/blob/images/10MinutesBenchMark.png)
+
+It consisently handle more than 9000 req/sec.
+
+All the cores are completely saturated during the benchmark.
 
 ## Safeness
 
