@@ -58,7 +58,7 @@ The result are summarized here:
 
 ![10 Minutes Benchmark](https://github.com/siscia/numerino/blob/images/10MinutesBenchMark.png)
 
-It consisently handle more than 9000 req/sec.
+It consisently handle more than 9500 req/sec.
 
 All the cores are completely saturated during the benchmark.
 
