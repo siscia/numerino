@@ -7,7 +7,7 @@ config :numerino, Numerino.Db,
 
 config :kernel,
     inet_dist_listen_min: 5000,
-    inet_dist_listen_max: 5010
+    inet_dist_listen_max: 5000
 
 #config :numerino, Numerino.Repo,
 #  adapter: Ecto.Adapters.Postgres,
