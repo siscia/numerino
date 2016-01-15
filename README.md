@@ -62,6 +62,19 @@ It consisently handle more than 9500 req/sec.
 
 All the cores are completely saturated during the benchmark.
 
+If you run it using Docker there is a little bit of performance penality, no much.
+
+Remeber, to run Docker with the option `--net=host`
+
+![5 Minutes Benchmark](https://raw.githubusercontent.com/siscia/numerino/images/DockerBenchMark5Minutes.png)
+
+![10 Minutes Benchmark](https://raw.githubusercontent.com/siscia/numerino/images/DockerBenchMark10Minutes.png)
+
+
+ttps://github.com/siscia/numerino/blob/images/10MinutesBenchMark.png)
+
+
+
 ## Safeness
 
 `Numerino` use only HTTP and don't have any authentication nor authorization mechanism, yet.
