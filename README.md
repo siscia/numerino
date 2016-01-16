@@ -1,24 +1,26 @@
 # Numerino
 
-Simple in memory Priority Queue
+Simple in memory Priority Queue.
 
-Numerino aims to be a standard, rock solid priority queue for any necessities.
+Numerino aims at being a standard rock solid priority queue for any necessity.
 
-I try to follow the UNIX philosophy to do only one thing and do it extremelly well.
+I tried to follow the UNIX philosophy: do only one thing and do it extremely well.
 
 ## Use cases
 
-A priority queue can be used in a lot of different scenarios, I am not trying to assume how you will use but I am only trying to provide the best platform to let you accomplish your job.
+A priority queue can be used in many different scenarios. 
 
-Since I have done no asumption of how you are going to use `Numerino` I sticked to use only strings, these because I find string to be a great compromise between flexibility and human-friendliness.
+I am not assuming how you will use Numerino but I am trying to provide the best platform to let you accomplish your job.
 
-The priority are internally rappresentent as string, as well is possible to enqueue only strings.
+Since there are no assumptions on how you are going to use `Numerino` I sticked to use only strings, as they are a great compromise between flexibility and human-friendliness.
 
-Example of use can be as a manager for a web crawler, or to manage CPU intenive work on a cluster, or pretty much anythig that need to be done in order.
+The priorities are internally represented as strings, and it is possible to enqueue only strings.
+
+Examples of use can be a manager for a web crawler, or to manage CPU intensive work on a cluster, or pretty much anything that needs to be done in order.
 
 ## Work in progress
 
-This is the very first release of `Numerino` I tried to provide the smallest useful piece of software I could come out with, there are pretty much no features but it is reasonably fast and reasonably correct.
+This is the very first release of `Numerino`. I tried to provide the smallest useful piece of software I could come out with, there are pretty much no features but it is reasonably fast and reasonably correct.
 
 I hope the community will use the project and suggest features and improvements to the software.
 
@@ -26,72 +28,67 @@ I hope the community will use the project and suggest features and improvements 
 
 If you look at the code it really looks like a joke, this README is likely longer than the code itself.
 
-I tried my best to keep it as small and simple as possible, I rewrote it all several time and this is the best version I can come up with, it is also the smallest.
+I tried my best to keep it as small and simple as possible, I rewrote it all several times and this is the best version I could come up with, it is also the smallest.
 
 ## Correctness
 
-Write concurrent code is extremelly hard, I did my best by keeping the scope as small as possible and using very simple data structure, still there is nasty bug I am not able to fix.
+Writing concurrent code is extremely hard, I did my best by keeping the scope as small as possible and using very simple data structure, still there is one nasty bug I am not able to fix.
 
-In the case of a write immediately followed by a read on the same queue in a particular configuration of the queue itself, the system could reply like the write didn't take place yet, even if the write itself is been acknoledged, fortunately the message is not lost and it will show up in the next read.
+In the case of a write immediately followed by a read on the same queue in a particular configuration of the queue itself, even if the write itself has been acknoledged, the system may reply as if the write hasn't taken place yet. Fortunately the message is not lost and it will show up in the next read.
 
-I have actually no idea why this happen, and the only explaination I was able to give myself sound like a "compiler bug" so I don't really want to believe in that.
+I have actually no idea why this happens, and the only explaination I was able to give myself sounds like a "compiler bug" so I don't really want to believe it.
 
-I want to reiterate that to reproduce this nasty bug the queue need to be in a particular configuration and that the write and read request are almost perfectly concurrent.
+I want to reiterate it. To reproduce this nasty bug the queue needs to be in a particular configuration and the write and read request need to be almost perfectly concurrent.
 
 ## Performance
 
-The code is written in Elixir/Erlang as such it takes as much advantages as possible from many processor, better a slow machine with a lot of processor than a fast machine with few.
+The code is written in Elixir/Erlang, this lets the software takes as much advantages as possible from many processors -- better a slow machine with a lot of processor than a fast machine with few.
 
-It is fast ?
+Is it fast ?
 
 'There is not such thing as fast, but only fast enough' - Cit. Joe Armstrong
 
-Said so still I am pretty satisfied of the performance.
+Said so, still I am pretty satisfied of the performance.
 
-I run the code using [Scaleway](https://www.scaleway.com/), it run on 4 ARMv7 cores, with 2GB of RAM, more information about the server are [here](https://www.scaleway.com/faq/server/).
+I run the code using [Scaleway](https://www.scaleway.com/), it runs on 4 ARMv7 cores, with 2GB of RAM, more information about the server is [here](https://www.scaleway.com/faq/server/).
 
 I used [wrk](https://github.com/wg/wrk) to test the software using a custom script available [here](https://gist.github.com/siscia/d9d72086110c80d75ea6)
 
-The result are summarized here:
+The results are summarized here:
 
 ![5 Minutes Benchmark](https://github.com/siscia/numerino/blob/images/5MinuteBenchMark.png)
 
 ![10 Minutes Benchmark](https://github.com/siscia/numerino/blob/images/10MinutesBenchMark.png)
 
-It consisently handle more than 9500 req/sec.
+It consisently handles more than 9500 req/sec.
 
 All the cores are completely saturated during the benchmark.
 
-If you run it using Docker there is a little bit of performance penality, no much.
+If you run it using Docker there is a little bit of performance penality, not much.
 
-Remeber, to run Docker with the option `--net=host`
+Remeber, to run Docker with the `--net=host` option.
 
 ![5 Minutes Benchmark](https://raw.githubusercontent.com/siscia/numerino/images/DockerBenchMark5Minutes.png)
 
 ![10 Minutes Benchmark](https://raw.githubusercontent.com/siscia/numerino/images/DockerBenchMark10Minutes.png)
 
-
-ttps://github.com/siscia/numerino/blob/images/10MinutesBenchMark.png)
-
-
-
 ## Safeness
 
-`Numerino` use only HTTP and don't have any authentication nor authorization mechanism, yet.
+`Numerino` uses only HTTP and doesn't have any authentication nor authorization mechanism, yet.
 
-It means that you need to run it in your own local infrastracture and don't open it to the world.
+It means that you need to run it in your own local infrastracture and don't expose it to the world.
 
 ## A word of caution
 
-Before that I show you the API I need to clarify that `Numerino` is my first experience developing in Elixir/Erlang/OTP, I tried to do my best but obviously I could have get a lot of things in the wrong way.
+Before that I show you the API I need to clarify that `Numerino` is my first experience developing in Elixir/Erlang/OTP, I tried to do my best but obviously I could have gotten a lot of things in the wrong way.
 
-I would suggest you to test it, see if it runs following your expectation and necessities then run it in a secure environment and finally, if everything went good use it in production.
+I would suggest you to test it, see if it runs following your expectation and necessities then run it in a secure environment and finally, if everything went well use it in production.
 
-You are also warmly encourange to send me an email (visible in my github profile) at any of those step, we can discuss about your expected load, the performace you need to achieve and the hardware you have available.
+You are also warmly encouraged to send me an email (visible in my github profile) at any of those step, we can discuss about your expected load, the performace you need to achieve and the hardware you have available.
 
 ## Use
 
-`Numerino` has been developed to manage a big number of queues, queues are cheap and you are encourange to start as many queues as you need, however they do use memory, very few memory but still significant, after you have done your job with your queue is still better to clean up.
+`Numerino` has been developed to manage a big number of queues, queues are cheap and you are encouraged to start as many queues as you need, however they do use memory, very few memory but still significant, after you have done your job with your queue is still better to clean up.
 
 `Numerino` provides a REST-like JSON API very scarse.
 
@@ -103,7 +100,7 @@ If everything goes right, the response will provide the `name` of the queue you 
 
 To push a new object in the queue all you need is another `POST` request, to communicate the object you want to save in the queue and what priority associate with such object.
 
-Finally to pop from the queue you only need a `GET` request with will respond with the first element in the queue and its priority.
+Finally to pop from the queue you only need a `GET` request which will respond with the first element in the queue and its priority.
 
 ### API
 
@@ -125,7 +122,7 @@ Finally to pop from the queue you only need a `GET` request with will respond wi
 
 #### DESCRIPTION
 
-The name of the queue is going to be a UUID version 4, something that will looks like this: `d384536bb80a405cb7a4dfe7ef1bcacd`, you will need the name for every action you are going to execute on the queue.
+The name of the queue is going to be a UUID version 4, something that will look like this: `d384536bb80a405cb7a4dfe7ef1bcacd`, you will need the name for every action you are going to execute on the queue.
 
 * * *
 
@@ -147,7 +144,7 @@ The name of the queue is going to be a UUID version 4, something that will looks
 
 #### DESCRIPTION
 
-The `:name` in the URL is the name that is been returned from the creation of the queue.
+The `:name` in the URL is the name that has been returned from the creation of the queue.
 
 * * *
 
@@ -171,9 +168,9 @@ The `:name` in the URL is the name that is been returned from the creation of th
 
 #### DESCRIPTION
 
-The `:name` in the URL is the name that is been returned from the creation of the queue.
+The `:name` in the URL is the name that has been returned from the creation of the queue.
 
-If the queue is not empty and at least an element is still on the queue you will get the first response, if the queue is empty you will get the second one.
+If the queue is not empty and at least one element is still on the queue you will get the first response, if the queue is empty you will get the second one.
 
 * * *
 
@@ -194,9 +191,7 @@ If the queue is not empty and at least an element is still on the queue you will
 
 #### DESCRIPTION
 
-The `:name` in the URL is the name that is been returned from the creation of the queue.
+The `:name` in the URL is the name that has been returned from the creation of the queue.
 
-This operation is permanent, there is no way to retrieve the messages on the delete queue, it will free up space.
-
-
+This operation is permanent, there is no way to retrieve the messages on the deleted queue, it will free up space.
 
