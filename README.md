@@ -6,11 +6,13 @@ Numerino aims at being a standard rock solid priority queue for any necessity.
 
 I tried to follow the UNIX philosophy: do only one thing and do it extremely well.
 
+Instead of developing and deploying your own priority queue implementation you can just use Numerino, that is simple and convenient especially for distributed systems.
+
 ## Use cases
 
 A priority queue can be used in many different scenarios. 
 
-I am not assuming how you will use Numerino but I am trying to provide the best platform to let you accomplish your job.
+In order to provide a platform that lets you accomplish your job, I did not make any assumptions on how you will use it.
 
 Since there are no assumptions on how you are going to use `Numerino` I sticked to use only strings, as they are a great compromise between flexibility and human-friendliness.
 
