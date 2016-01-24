@@ -9,10 +9,10 @@ defmodule Numerino.Queue do
   def push(list, priority, message) do
     case List.keyfind(list, priority, 0) do
       nil -> 
-        {:error, :not_found_priority}
+        {{:error, :not_found_priority}, list}
       {^priority, queue} ->
         new_list = List.keyreplace(list, priority, 0, {priority, :queue.in(message, queue)});
-        {:ok, new_list}
+        {{:ok, {priority, message}}, new_list}
     end
   end
 
@@ -28,8 +28,8 @@ defmodule Numerino.Queue do
     end
     {new_list, mssg} = Enum.map_reduce(list, :EOF, do_pop)
     case mssg do
-      :EOF -> {:empty, new_list}
-      {_p, _message} -> {{:value, mssg}, new_list}
+      :EOF -> {{:ok, :EOF}, new_list}
+      {_, _} -> {{:ok, mssg}, new_list}
     end
   end
 end
