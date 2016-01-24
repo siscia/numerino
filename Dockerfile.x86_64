@@ -2,11 +2,13 @@ FROM msaraiva/elixir-dev:1.2.0
 
 MAINTAINER Simone Mosciatti
 
+ENV REFRESHED_AT V0.1.7
+
 RUN git clone https://github.com/siscia/numerino.git numerino
 
 WORKDIR /numerino
 
-RUN git checkout v0.1.6
+RUN git checkout v0.1.7
 
 RUN mix local.hex --force && \
     mix local.rebar --force
