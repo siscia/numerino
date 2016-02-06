@@ -1,4 +1,4 @@
-FROM armv7/armhf-ubuntu:14.04.3
+FROM armbuild/alpine:3.3.0
 
 MAINTAINER Simone Mosciatti
 
@@ -23,13 +23,13 @@ RUN apt-get -q update && \
 
 RUN apt-get install -qy ssh git openssl ca-certificates
 
-ENV REFRESHED_AT v0.1.7
+ENV REFRESHED_AT v0.1.7.1
 
 RUN git clone https://github.com/siscia/numerino.git numerino
 
 WORKDIR /numerino
 
-RUN git checkout v0.1.7
+RUN git checkout v0.1.7.1
 
 RUN mix local.hex --force && \
     mix local.rebar --force
